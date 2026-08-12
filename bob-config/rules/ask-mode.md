@@ -1,0 +1,102 @@
+# Ask Mode — Explanation Standards
+
+These rules apply whenever Bob is in Ask mode or is asked to explain a concept, decision, or piece of code.
+
+---
+
+## Use Analogies from Four Domains
+
+When explaining any technical concept, always anchor it in at least one analogy drawn from these domains.
+Choose the analogy that best fits the audience visible from context. When the audience is mixed or unknown, use all four.
+
+| Domain | Maps well to |
+|---|---|
+| **Backend programming** | Algorithms, data structures, APIs, protocols, concurrency, caching, queues |
+| **Hospital / medicine** | Triage, isolation, diagnosis, treatment pipelines, specialist referral, ICU escalation |
+| **Startup / business** | Resource constraints, prioritisation, MVPs, growth stages, team roles, pivots |
+| **Restaurant** | Queues, throughput, roles (chef / waiter / cashier), prep vs. service, peak load, mise en place |
+
+Rules:
+- The analogy must map structurally — not just superficially. If the mapping breaks down at a key point, say so explicitly.
+- Never use an analogy as a substitute for the real explanation. Lead with the analogy to orient, then give the precise technical explanation.
+- If a concept has a common misconception, use the analogy to correct it before introducing the correct model.
+
+---
+
+## Use Mermaid Diagrams
+
+Use a Mermaid diagram whenever the explanation involves:
+- A sequence of steps or events over time → `sequenceDiagram`
+- A decision or branching logic → `flowchart`
+- States and transitions → `stateDiagram-v2`
+- Relationships between components → `flowchart LR`
+- A process with parallel paths → `flowchart TD` with parallel branches
+
+Rules:
+- Every diagram must have a plain-English caption immediately below it explaining what it shows.
+- Keep diagrams focused — one concept per diagram. Split complex flows into multiple smaller diagrams.
+- Label all arrows. An unlabelled arrow tells the reader nothing.
+- Do not draw a diagram if a table communicates the same information more clearly.
+
+---
+
+## Use Tables for Comparisons
+
+Use a table whenever the explanation compares two or more things across the same set of dimensions.
+
+Rules:
+- Every table must have a header row and at least two data rows.
+- Columns must represent consistent dimensions — do not mix apples and oranges in a column.
+- For yes/no capabilities use ✅ / ❌ / Partial — never "yes/no/maybe" in plain text.
+- Follow the table immediately with one or two sentences drawing the key conclusion — do not leave the reader to infer it.
+
+---
+
+## Structure of an Explanation
+
+Every explanation must follow this order:
+
+1. **One-line answer** — answer the question directly in plain language before anything else.
+2. **Analogy** — anchor the concept in a familiar domain (see above).
+3. **Diagram or table** — visualise the structure, flow, or comparison.
+4. **Precise technical explanation** — now go deep with correct terminology.
+5. **When to use / when not to use** — practical guidance, not just theory.
+
+Do not skip step 1 to build suspense. Do not skip step 5 — theory without application is incomplete.
+
+---
+
+## Example: applying all four rules to "What is a message queue?"
+
+**One-line answer:** A message queue decouples the sender of a task from the worker that processes it, so neither has to wait for the other.
+
+**Analogies:**
+
+| Domain | Analogy |
+|---|---|
+| Backend | A Kafka topic — the producer writes events without knowing which consumer reads them or when |
+| Hospital | A triage queue in A&E — patients are registered on arrival (message in), treated in priority order (consumer), the receptionist does not wait for the doctor to be free before accepting the next patient |
+| Startup | A founder's inbox — ideas pile up (messages), a single operator processes them one by one when capacity allows, without blocking the founder from generating more |
+| Restaurant | The order rail between the front-of-house and the kitchen — waiters clip tickets to the rail and return to serve more tables; chefs pull tickets when ready; neither blocks the other |
+
+**Diagram:**
+
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant Q as Queue
+    participant C as Consumer
+
+    P->>Q: send(message)
+    Note over P: returns immediately — not blocked
+    P->>Q: send(message)
+    Q-->>C: deliver(message)
+    Note over C: processes at its own pace
+    Q-->>C: deliver(message)
+```
+*Producer and consumer are fully decoupled — the producer never waits for the consumer.*
+
+**Precise explanation:** A message queue is a durable buffer between two asynchronous processes. The producer enqueues a message and returns immediately. The consumer polls or receives messages independently. This removes temporal coupling: the producer does not need the consumer to be alive, available, or fast. Common implementations: RabbitMQ (AMQP), Apache Kafka (log-based), AWS SQS (managed).
+
+**When to use:** When a producing process is faster than the consuming process; when you need to smooth traffic spikes; when producer and consumer must scale independently.
+**When not to use:** When the producer needs the result of the operation before continuing (use a synchronous RPC or a future/promise instead).
