@@ -1,7 +1,7 @@
 # IBM Bob 2.x — Team Presentation
 ### "Your AI SDLC Partner in Action"
 
-**Audience:** Junior Developers & Project Owners with decent Gen-AI knowledge  
+**Audience:** Developers & Project Owners with decent Gen-AI knowledge  
 **Format:** Slides + Live Demo  
 **Estimated time:** ~45 min total (25 min slides + 20 min demo)
 
