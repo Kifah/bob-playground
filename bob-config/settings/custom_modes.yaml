@@ -1,0 +1,16 @@
+# Global custom modes — available in every project on this machine.
+# Add modes here following the Bob custom_modes.yaml schema.
+# See: https://bob.ibm.com/docs/ide/configuration/custom-modes
+#
+# Example:
+# customModes:
+#   - slug: security-reviewer
+#     name: 🔒 Security Reviewer
+#     description: Reviews code for security issues only. Cannot edit files.
+#     roleDefinition: >
+#       You are a security engineer. Review code for vulnerabilities. Never modify files.
+#     groups:
+#       - read
+#       - mcp
+
+customModes: []
