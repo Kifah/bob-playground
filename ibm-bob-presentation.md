@@ -17,10 +17,10 @@
 6. [Project Memory: /init, AGENTS.md & Custom Rules](#6-project-memory-init-agentsmd--custom-rules)
     - [6b. Lifecycle Hooks](#6b-lifecycle-hooks)
 7. [Slash Commands](#7-slash-commands)
+    - [/review — Built-in Code Review](#review--built-in-code-review-workflow)
 8. [Todo Tracking & Rollback](#8-todo-tracking--rollback)
     - [8b. Skills](#8b-skills)
 9. [Subagents & Subtasks](#9-subagents--subtasks)
-    - [Agent Personas](#agent-personas)
 10. [Custom Modes](#10-custom-modes)
 11. [MCP — Extending Bob](#11-mcp--extending-bob)
     - [11a. MCP in Practice: The Memory Knowledge Graph](#11a-mcp-in-practice-the-memory-knowledge-graph)
@@ -35,14 +35,21 @@
 
 IBM Bob is an **AI SDLC partner** — not just autocomplete, but a full agentic assistant that reasons across your codebase, plans features, implements code across multiple files, and executes terminal commands, all inside your IDE.
 
-> 💡 *If you've used GitHub Copilot or Claude, Bob will feel immediately familiar — and then go further.* Copilot completes the line you're typing. Claude answers questions in a chat. Bob does both, and adds something neither has: it reads your actual files, runs terminal commands, plans features end-to-end, and tracks its own progress — all without leaving the IDE.
+> 💡 *If you've used GitHub Copilot or Claude Code, Bob will feel immediately familiar — and then go further.* Copilot's agent mode and Claude Code can both edit files and run terminal commands — so that bar has been raised across the industry. Where Bob goes further is in the **structure** it puts around that power: hard-enforced modes that cap what the AI can do, a persistent memory system that survives across sessions, a skills library your whole team shares, and an approval model that keeps you in control at every step — none of which the other tools offer natively.
 
-**Key differentiators vs. generic AI chat tools:**
-- Operates *inside* your IDE with access to your actual files, terminal, and tools
-- Understands your whole project, not just what you paste in
-- Uses structured **modes** so behaviour is predictable and scoped
-- Keeps a **270,000-token context window** — large enough to hold entire modules
-- Every action requires your approval (you are always in control)
+**Key differentiators vs. Copilot agent mode and Claude Code:**
+
+| Capability | GitHub Copilot (agent) | Claude Code | IBM Bob |
+|---|---|---|---|
+| Multi-file edits & terminal commands | ✅ | ✅ | ✅ |
+| Reads your actual codebase | ✅ | ✅ | ✅ |
+| Hard-enforced tool ceilings per mode | ❌ | Partial (`plan`/`acceptEdits`/`dontAsk` modes exist, but no per-action-type ceiling) | ✅ |
+| Persistent project memory | Partial (`.github/copilot-instructions.md`, single file) | Partial (`CLAUDE.md` + `.claude/rules/` directory, similar concept but no mode-specific variants) | ✅ Full layered system with mode-specific rules |
+| Structured approval model per action type | Partial (allow/deny per tool via flags, no per-session UI) | Partial (permission modes + `--allow-tool`/`--deny-tool`, no granular per-action-type UI) | ✅ Per-action-type, toggleable in UI |
+| Team-shareable skills library | ❌ | ❌ | ✅ |
+| Subagents + subtasks as first-class primitives | Partial (Cloud Agent opens PRs autonomously; no subtask UI concept) | Partial (subagents only, no subtask breadcrumb UI) | ✅ |
+| MCP server integration | ✅ | ✅ | ✅ |
+| Fixed 270,000-token context window | ❌ (varies by model/plan) | ❌ (varies by model/plan) | ✅ |
 
 > 💡 *For Project Owners:* Think of Bob as an autonomous junior developer you can pair with any engineer, that never loses context about your project conventions, always asks before making changes, and can be rolled back instantly.
 
@@ -52,7 +59,7 @@ IBM Bob is an **AI SDLC partner** — not just autocomplete, but a full agentic 
 
 Bob ships with three **purpose-built modes**. Each mode restricts Bob to a specific set of tools, keeping its behaviour predictable and safe.
 
-> 💡 *Familiar concept:* Think of modes like **database transaction isolation levels** — each one draws a boundary around what can be seen and changed. Agent mode is `READ WRITE` (full access). Ask mode is `READ ONLY` (no side effects). Plan mode is somewhere in between. If you've used Claude, think of switching modes like choosing a different Claude.ai project — each one has its own personality and constraints, except in Bob the constraints are hard-enforced by the tool list, not just instructions.
+> 💡 *Familiar concept:* Think of modes like **database transaction isolation levels** — each one draws a boundary around what can be seen and changed. Agent mode is `READ WRITE` (full access). Ask mode is `READ ONLY` (no side effects). Plan mode is somewhere in between. Claude Code has a similar concept (`plan` mode, `acceptEdits` mode), but in Bob the boundaries are defined per-mode by an explicit tool list — not a flag you pass at startup — making them composable, team-shareable, and version-controlled in `.bob/custom_modes.yaml`.
 
 | Mode | Purpose | Tools available | When to use |
 |------|---------|-----------------|-------------|
@@ -154,9 +161,29 @@ Write instructions **directly in your editor** in plain language — Bob convert
 
 LLMs are stateless — each new conversation starts from scratch. Bob solves this through a layered rules system that persists context across sessions.
 
+Bob has three mechanisms for injecting persistent context — they all add text to the conversation without you typing it manually, but differ in *when* and *how* they activate:
+
+```mermaid
+flowchart LR
+    R["📋 Rules\n(AGENTS.md / rules/)"]
+    M["🔀 Modes\n(custom_modes.yaml)"]
+    S["🎯 Skills\n(.bob/skills/)"]
+
+    R --> RA["always active\n— every conversation"]
+    M --> MA["activated by user\n— explicit mode switch"]
+    S --> SA["activated by Bob\n— on demand when task matches"]
+
+    style R  fill:#1e3a5f,color:#fff,stroke:#3b82d4
+    style M  fill:#1e3a5f,color:#fff,stroke:#3b82d4
+    style S  fill:#1e3a5f,color:#fff,stroke:#3b82d4
+    style RA fill:#0f2a1f,color:#d1fae5,stroke:#22c55e
+    style MA fill:#2a1f0f,color:#fef9c3,stroke:#eab308
+    style SA fill:#2a0f2a,color:#f3e8ff,stroke:#a855f7
+```
+
 ### /init & AGENTS.md
 
-> 💡 *Familiar concept:* If you've used GitHub Copilot's `.github/copilot-instructions.md`, `AGENTS.md` is exactly that idea — a markdown file committed to the repo that tells the AI about your project conventions. Bob takes it further: `/init` generates it automatically by scanning the codebase, and creates mode-specific variants so Plan mode and Agent mode each get their own tailored context file.
+> 💡 *Familiar concept:* If you've used GitHub Copilot's `.github/copilot-instructions.md` or Claude Code's `CLAUDE.md`, `AGENTS.md` is exactly that idea — a markdown file committed to the repo that tells the AI about your project conventions. Bob takes it further: `/init` generates it automatically by scanning the codebase, and creates **mode-specific variants** so Plan mode and Agent mode each get their own tailored context file. Neither Copilot nor Claude Code have mode-scoped rule files — they load a single instructions file for every session.
 
 **What `/init` does:**
 - Scans your project structure, tech stack, and conventions
@@ -211,6 +238,8 @@ Files load in **alphabetical order** and are combined with any `customInstructio
 3. Mode-specific global rules (`~/.bob/rules-agent/`)
 4. General global rules (`~/.bob/rules/`)
 
+> ⚠️ **Keep rules files short.** Rules are injected into every conversation — a 150-line rules file costs roughly 2,700 tokens of your 270,000-token context window. Every token spent on standing rules is a token not available for your code. Put only what you truly need in every conversation; anything task-specific belongs in a skill instead. You can hover over the rules indicator in the Bob sidebar to see exactly how many tokens your current rules file is consuming.
+
 ---
 
 **Weather API — practical rules setup:**
@@ -225,10 +254,14 @@ mkdir -p .bob/rules .bob/rules-agent .bob/rules-ask
 # Weather API — Coding Standards
 
 ## Java
-- Use Java records for immutable DTOs (e.g. WeatherResponse)
+- Use Java records for immutable response DTOs (e.g. WeatherResponse) — no Lombok needed for these
 - Use constructor injection only — no @Autowired field injection
+- Use Lombok @RequiredArgsConstructor on @Service/@Component classes to generate the constructor for all final fields
+- Use Lombok @Slf4j for loggers — no manual `private static final Logger log = ...` declarations
+- Use Lombok @Data + @NoArgsConstructor for mutable request body DTOs that Jackson must deserialize
+- Never use Lombok @Data on JPA @Entity classes — use explicit getters/setters to avoid Hibernate pitfalls
 - All public methods must have Javadoc
-- No System.out.println — use SLF4J logger
+- Lombok version: 1.18.34 (scope: provided)
 
 ## REST
 - Return RFC 7807 ProblemDetail for all error responses
@@ -337,7 +370,7 @@ Automatically tells Bob what branch you're on and whether the app is currently r
 `.bob/hooks/session-context.sh`:
 ```bash
 #!/bin/sh
-echo "Project: Weather API (Spring Boot 3.x, Maven)"
+echo "Project: Weather API (Spring Boot 4.x, Maven)"
 echo "Git branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
 echo "Java version: $(java -version 2>&1 | head -1)"
 echo "App running: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/actuator/health 2>/dev/null || echo 'not running')"
@@ -519,12 +552,48 @@ Slash commands let you trigger actions, switch modes, and run **custom reusable 
 
 > 💡 *Familiar concept:* Slash commands are **npm scripts for your AI workflows** — named shortcuts that wrap a repeatable action. If you've built up a library of prompts in Claude or ChatGPT that you copy-paste every session, slash commands are the equivalent committed to the repo: versioned, shared with the team, and available on clone with no setup.
 
-### Built-in commands (examples)
+### Built-in commands
 
 | Command | Effect |
 |---------|--------|
-| `/init` | Generate AGENTS.md for the project |
+| `/init` | Generate `AGENTS.md` for the project |
 | `/agent`, `/plan`, `/ask` | Switch modes instantly |
+| `/review` | AI-powered code review — see below |
+| `/permissions` | Check and change the workspace trust level |
+
+### `/review` — built-in code review workflow
+
+`/review` opens a dedicated **Review panel** in the sidebar. Bob diffs your selected branches, runs automated analysis, and surfaces findings in the **Bob Findings panel** — all with auto-approval (no manual confirmation needed per step).
+
+**Usage variants:**
+
+| Command | What it reviews |
+|---------|----------------|
+| `/review` | Local uncommitted changes in the working directory |
+| `/review <branch>` | Diff between `<branch>` and your current HEAD |
+| `/review #<issue>` `--issue-coverage` | Validates local changes actually address a GitHub issue |
+| `/review <issue-url>` `--issue-coverage` | Same, using a full GitHub issue URL |
+
+**What Bob analyses:** bug detection, security issues, performance problems, style consistency.
+
+**How to use the Review panel:**
+1. Run `/review` — the Review panel opens in the sidebar
+2. Select the branch to compare against (local, remote, or repo default)
+3. Toggle **Include Uncommitted Changes** if needed
+4. Optionally link a GitHub issue to validate coverage
+5. Click **Start Review** — findings appear in the Bob Findings panel
+
+> 💡 *For Project Owners:* Use `/review #<issue>` `--issue-coverage` before raising a PR to verify that the implementation actually addresses the ticket requirements — not just that it compiles and passes tests.
+
+> ⚠️ Branch comparisons work with both GitHub and GitLab. Issue validation (`--issue-coverage`) requires a GitHub account and issue URL.
+
+**Weather API — practical use:**
+```
+/review main --issue-coverage
+```
+Run this before every PR on the Weather API to catch bugs, security issues in `WeatherClient`, and verify that the OpenWeatherMap integration addresses the linked ticket.
+
+---
 
 ### Creating custom commands
 
@@ -532,15 +601,18 @@ Create a markdown file in `.bob/commands/` — the filename becomes the command:
 
 ```
 .bob/commands/
-├── review.md         →  /review
 ├── test-api.md       →  /test-api
 └── security-check.md →  /security-check
 ```
 
-Example `.bob/commands/review.md`:
+> ⚠️ Do not name a custom command file `review.md` — `/review` is a built-in command and cannot be overridden by a custom command file.
+
+Example `.bob/commands/test-api.md`:
 ```markdown
-Review the current file for: code quality, security issues, and naming conventions.
-Suggest specific improvements with code examples.
+Run the full Weather API test suite and report:
+1. Which tests passed and which failed
+2. Code coverage percentage for WeatherController and WeatherService
+3. Any test that took longer than 500ms
 ```
 
 > 💡 *For teams:* Commit `.bob/commands/` — every team member gets the same standardised prompts, version-controlled with the project.
@@ -595,7 +667,7 @@ Add full observability to the Weather API:
 
 ```
 Containerise and deploy the Weather API:
-- Create a multi-stage Dockerfile (build with Maven, run with Eclipse Temurin JRE 17 slim)
+- Create a multi-stage Dockerfile (build with Maven, run with Eclipse Temurin JRE 21 slim)
 - Create a docker-compose.yml that runs the app on port 8080
 - Create a GitHub Actions workflow (.github/workflows/ci.yml) that builds, tests, and pushes the image to GitHub Container Registry on every push to main
 ```
@@ -617,6 +689,17 @@ Bob uses Git under the hood. Every prompt in the chat history has a **Rollback**
 ## 8b. Skills
 
 Skills are reusable instruction sets that Bob loads on demand into its context — like a specialised playbook for a specific task type. They are defined as `SKILL.md` files and activated with the `use_skill` tool or via a slash command.
+
+**How a skill is stored in context — the two-part design:**
+
+Every skill has two parts that are treated very differently by Bob:
+
+| Part | What it is | When it is loaded |
+|------|-----------|-------------------|
+| **`description:`** (1–2 sentences in the frontmatter) | A short signal Bob uses to decide if this skill is relevant | **Always** — added to every conversation alongside rules |
+| **Body** (everything below the `---` delimiter) | The full instructions, checklist, workflow, or reference material | **On demand only** — loaded into context when Bob activates the skill |
+
+This design is deliberate: loading every skill's full body into every conversation would waste thousands of tokens. Only the tiny description is always present; the body is pulled in only when needed. The result is a large library of skills with near-zero standing token cost.
 
 > 💡 *Familiar concept:* Skills are **middleware or interceptors** that you opt into for a specific request. Like a Spring `HandlerInterceptor` or an Express middleware that enriches a request with extra context before the handler runs — a skill enriches Bob's context with domain-specific instructions before it tackles a task. It's loaded on demand, scoped to that task, and unloaded when done.
 
@@ -677,7 +760,7 @@ description: Adds SpringDoc OpenAPI 3 annotations to Spring Boot REST controller
 ---
 
 When adding OpenAPI documentation:
-- Always use springdoc-openapi-starter-webmvc-ui (Spring Boot 3.x compatible)
+- Always use springdoc-openapi-starter-webmvc-ui (Spring Boot 4.x compatible)
 - Annotate each controller method with @Operation(summary, description)
 - Annotate each response with @ApiResponse(responseCode, description, content)
 - Use @Schema on response model fields to describe the data type and example value
@@ -740,142 +823,6 @@ Bob now has exactly what it needs — and your main context is clean for the act
 - You ask it to add a field to `WeatherResponse.java` → 1 direct tool call, no subagent
 - You ask it to explain `WeatherController.java` → 1 `read_file` call, no subagent
 - You ask it to fix a compilation error shown in `@problems` → already has context, no subagent
-
-### Agent Personas
-
-A **persona** is a markdown file that shapes what a subagent is, what it looks for, how it formats its output, and what it is not allowed to do. Where a custom mode shapes the main task, a persona shapes a helper subagent.
-
-> 💡 *Familiar concept:* Personas are like **Docker images for subagents** — the persona file is the image definition, Bob spawning the subagent is `docker run`, and the container exits when the task is done. Each persona is a specialised, versioned, reusable role: a `code-reviewer` that is always read-only and always returns a structured severity table; a `pr-summarizer` that knows exactly what your team's PR descriptions should look like. Consistent output, every time.
-
-When Bob spawns a subagent, it checks `.bob/agents/` for a persona file whose `description` matches the task. If one is found, the role body is injected into the subagent's system prompt.
-
-**Persona file format:**
-```markdown
----
-name: persona-name
-description: One-line mission statement Bob uses to match this persona to a task.
-tools:
-  - read        # ceiling only — cannot grant more than the active task allows
----
-
-Role body: who the subagent is, what checklist it follows, what format it returns.
-```
-
-**Front matter fields:**
-
-| Field | Required | Purpose |
-|-------|----------|---------|
-| `name` | Yes | Identifier used in logs. Match the filename without `.md`. |
-| `description` | Yes | Bob matches this to the task to auto-select the persona. |
-| `tools` | No | Restricts tool access. `[read]` for reviewers, summarisers, planners. |
-
-**File placement:**
-
-| Location | Scope |
-|----------|-------|
-| `<project>/.bob/agents/` | This project — committed to the repo, shared with the team |
-| `~/.bob/agents/` | All projects on this machine — personal personas |
-
-Project-level personas take precedence when names collide.
-
----
-
-**Weather API — example persona: `pr-summarizer`**
-
-When the Weather API team opens a PR adding the OpenWeatherMap integration, they want a consistent, structured PR description every time — without writing it manually.
-
-`.bob/agents/pr-summarizer.md`:
-```markdown
----
-name: pr-summarizer
-description: Reads changed files and produces a structured pull request description. Read-only.
-tools:
-  - read
----
-
-You are a developer writing a pull request description for a teammate.
-
-Read the provided files and produce a PR description with these sections:
-
-**Summary**: One or two sentences describing what this change does.
-**Why**: The likely motivation, inferred from the code changes.
-**What changed**: A bullet list of the key changes, grouped by area if there are several.
-**Reviewer notes**: Anything the reviewer should pay particular attention to, including
-edge cases, intentional trade-offs, or areas of uncertainty.
-
-Write in plain, direct language. Do not pad the description.
-Do not list every file changed. Focus on what matters to the reviewer.
-```
-
-**Triggering it in chat:**
-```
-Spawn a subagent using the pr-summarizer persona.
-Read @git-changes and produce a PR description for the OpenWeatherMap integration.
-```
-
-**What Bob does:**
-1. Loads `.bob/agents/pr-summarizer.md`
-2. Spawns a read-only subagent with the role injected into its system prompt
-3. Subagent reads the changed files silently
-4. Returns a structured PR description to the main conversation — ready to paste into GitHub
-
----
-
-**Weather API — example persona: `code-reviewer`**
-
-`.bob/agents/code-reviewer.md`:
-```markdown
----
-name: code-reviewer
-description: Reviews code for correctness, readability, and maintainability. Read-only.
-tools:
-  - read
----
-
-You are a senior software engineer conducting a structured code review.
-
-Review each file against this checklist:
-1. Correctness: logic errors, missing null checks, unhandled edge cases
-2. Readability: long methods, deep nesting, unclear naming
-3. Maintainability: tight coupling, missing abstraction, duplicated logic
-
-Report findings in a table: Severity | File | Lines | Description
-Use severity levels: HIGH, MEDIUM, LOW.
-
-Do not suggest fixes. Describe issues only.
-If a file has no findings, list it explicitly as clean.
-```
-
-**Triggering it:**
-```
-Use the code-reviewer persona to review @/src/main/java/com/example/weather/.
-```
-
----
-
-**Inline personas — no file needed for one-off tasks:**
-```
-Spawn an explore subagent with this role:
-You are a dependency auditor. Read pom.xml and flag any dependency that:
-- Has no declared version (relies on Spring Boot BOM)
-- Is a snapshot or pre-release version
-- Is unused based on imports in the src/ directory
-Return a table: Dependency | Issue | Recommendation.
-```
-
-Inline roles work identically to file-based personas for a single task. Create a `.bob/agents/` file when you want to reuse the role or share it with the team.
-
----
-
-**Personas vs Modes vs Rules — when to use which:**
-
-| Mechanism | Scope | What it controls | Use when |
-|-----------|-------|-----------------|----------|
-| **Mode** | Entire task | Tool ceiling + role for the main agent | Main agent needs a different posture (read-only, docs-writer) |
-| **Rule / AGENTS.md** | Task or mode | Standing instructions in system prompt | Team conventions, formatting standards, guardrails |
-| **Persona** | One subagent | Role, focus, output format, tool constraints | A helper needs domain focus: reviewing, summarising, planning |
-
-> 💡 *For teams:* Commit `.bob/agents/` alongside `.bob/commands/` and `.bob/custom_modes.yaml`. Any developer who clones the repo immediately has access to the team's full library of reviewers, summarisers, and planners — no setup required.
 
 ### Subtasks (visible, interactive)
 
@@ -944,6 +891,8 @@ Create modes tailored to specific workflows, restricting Bob to exactly the tool
 
 You can also **override built-in modes** by using the same slug (`ask`, `agent`, `plan`).
 
+> 💡 **Parallel conversations safety.** When running multiple Bob conversations at the same time — a common pattern when exploring one thing while implementing another — activating a read-only mode in the exploratory conversation guarantees it cannot edit any files, no matter what you ask. This is a hard enforcement: the edit tool is simply not in the mode's tool list. Instructions alone cannot override it. Use this any time you want information without any risk of accidental changes landing in your working tree.
+
 > 💡 Custom modes and custom rules work together. A mode's `customInstructions` field in YAML is the inline equivalent of a rules file — but for larger or team-shared rule sets, prefer a dedicated file in `.bob/rules-{mode-slug}/` (see §6). Files in that directory are loaded alongside `customInstructions`, in alphabetical order.
 
 ### Custom modes for the Weather API project
@@ -1002,7 +951,7 @@ customModes:
     whenToUse: Use for deployment, containerisation, and infrastructure tasks.
     customInstructions: |
       - Always use multi-stage Docker builds (Maven build + JRE runtime image)
-      - Use Eclipse Temurin JRE 17 slim as the runtime base image
+      - Use Eclipse Temurin JRE 21 slim as the runtime base image
       - GitHub Actions workflows must include: build, test, and push-to-registry stages
       - Kubernetes manifests must include resource requests/limits and liveness/readiness probes
     groups:
@@ -1113,7 +1062,7 @@ Store the following in the knowledge graph:
 
 - [ ] IBM Bob open, workspace empty or fresh folder
 - [ ] Auto-approve: **Read ON**, **Edit & Execute OFF** (manual — audience sees every step)
-- [ ] Java 17+ and Maven available in terminal
+- [ ] Java 21+ and Maven available in terminal
 - [ ] Browser or Postman ready for `http://localhost:8080/weather`
 - [ ] Font size bumped up for screen visibility
 
@@ -1290,13 +1239,13 @@ Provide specific, actionable feedback with code examples.
 ### Prompt 1 — Scaffold the Spring Boot Weather API
 
 **Mode:** Agent
-**What it produces:** A fully runnable Spring Boot 3.x Maven project with a single `GET /weather` endpoint returning a hardcoded JSON response.
+**What it produces:** A fully runnable Spring Boot 4.x Maven project with a single `GET /weather` endpoint returning a hardcoded JSON response.
 
 ```
-Create a Spring Boot REST API project using the latest stable Spring Boot 3.x with Maven.
+Create a Spring Boot REST API project using the latest stable Spring Boot 4.x with Maven.
 
 Requirements:
-- Java 17
+- Java 21
 - Single GET endpoint: GET /weather
 - Returns the following hardcoded JSON response body:
   { "city": "Berlin", "temperature": 20 }
@@ -1323,7 +1272,7 @@ Do not run the application yet.
 Add OpenAPI 3 documentation to the existing Spring Boot Weather API using springdoc-openapi.
 
 Requirements:
-- Add the springdoc-openapi-starter-webmvc-ui dependency to pom.xml (use the latest stable version compatible with Spring Boot 3.x)
+- Add the springdoc-openapi-starter-webmvc-ui dependency to pom.xml (use the latest stable version compatible with Spring Boot 4.x)
 - Annotate WeatherController and the GET /weather endpoint with appropriate @Operation and @ApiResponse annotations describing:
     - Summary: "Get current weather"
     - Description: "Returns hardcoded weather data for Berlin"
