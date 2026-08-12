@@ -51,6 +51,31 @@ Bob must follow them in all conversations unless a project-specific rule explici
 - A failing test is a blocker. Do not leave tests marked as skipped or ignored without a comment explaining why.
 - Minimum 70% line coverage for any new code added. Coverage alone is not the goal — meaningful assertions are.
 
+## Makefile
+
+- Every project must have a `Makefile` at the root for common development tasks.
+- Use `make` targets as the single entry point for repetitive operations — do not ask the developer to remember long commands.
+- Targets must be self-documenting: add a `## description` comment after each target and include a `help` target that prints them.
+- Standard targets to include in every project (use language/framework equivalents where needed):
+
+  | Target | Purpose |
+  |--------|---------|
+  | `make install` | Install all dependencies |
+  | `make build` | Compile or build the project |
+  | `make test` | Run the full test suite |
+  | `make test-unit` | Run unit tests only |
+  | `make test-coverage` | Run tests and print coverage report |
+  | `make lint` | Run linter / static analysis |
+  | `make format` | Auto-format all source files |
+  | `make run` | Start the application locally |
+  | `make clean` | Remove build artefacts and generated files |
+  | `make help` | Print all available targets with descriptions |
+
+- Keep targets simple and composable — `make ci` should call `make lint test build`, not duplicate their logic.
+- Use `.PHONY` for all targets that do not produce a file output.
+- When Bob generates or modifies build, test, or run commands anywhere in the project, it must also add or update the corresponding `Makefile` target.
+- When instructed to run tests, lint, or build, Bob must prefer `make test`, `make lint`, `make build` over direct tool commands, provided the target exists.
+
 ## General
 
 - Validate inputs at the boundary of every public function or API endpoint. Fail fast with a clear error message.
