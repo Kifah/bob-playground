@@ -1340,6 +1340,55 @@ After Bob generates the test files, use these terminal commands:
 
 ---
 
+### Prompt 4 — Ask Mode: Explain an Unknown Codebase
+
+**Mode:** Ask
+**What it produces:** A full architectural explanation of a real-world Java banking project — with analogies, Mermaid diagrams, and a comparison table — without writing a single line of code.
+
+> 💡 This prompt demonstrates Ask mode's core value: deep understanding of an unfamiliar codebase with zero risk of accidental changes. Use it at the start of a demo or as an onboarding showcase.
+
+**Setup:** Clone the project first (or just point Bob at a GitHub URL):
+```
+@https://github.com/ohbus/retail-banking
+```
+
+**The prompt:**
+```
+You are helping a new backend developer understand a Java Spring Boot banking application
+they have never seen before. The project is at https://github.com/ohbus/retail-banking
+
+Explain what this application does and how it is structured. Use the following:
+
+1. A one-paragraph plain-English summary of what the system does.
+
+2. An analogy from each of these domains that maps to the architecture:
+   - A restaurant (front-of-house, kitchen, cashier, orders)
+   - A hospital (reception, triage, specialist departments, patient records)
+
+3. A Mermaid flowchart showing the main user journey through the system
+   (registration → login → view accounts → transfer funds → view history).
+
+4. A Mermaid diagram showing the key layers of the application
+   (controller → service → repository → database).
+
+5. A table listing the main functional areas of the codebase, with columns:
+   Area | Responsibility | Key classes (best guess from structure)
+
+6. Three things a new developer should understand before touching this code.
+
+Do not write or suggest any code changes. Explain only.
+```
+
+**What to expect from Bob:**
+- Bob reads the repo structure, key Java files, and Spring configuration via `@` context mentions
+- Produces a multi-section explanation with diagrams and tables in a single response
+- Takes ~30–60 seconds depending on codebase size
+- Runs entirely in **Ask mode** — zero file changes, zero execute actions
+
+> 🎯 **Demo tip:** Run this live. The audience watches Bob navigate a codebase it has never seen and produce architecture documentation in under a minute — something that would take a new developer days to write manually.
+
+---
+
 ## 13. Tips for Getting the Most from Bob
 
 | Tip | Why it matters |
