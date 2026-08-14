@@ -86,11 +86,22 @@ When asked to explain a project, repository, or application you have not seen be
 
 6. **Three onboarding tips** — the three things a new developer must understand before making their first change. Be specific to this codebase, not generic advice.
 
+7. **Getting Started section — always include, regardless of README quality.**
+   Scan the project for: `pom.xml` / `build.gradle` / `package.json` (runtime version), `Makefile`, `.sh` scripts, `docker-compose*.yml`, `README.md`, and `application.properties` / `.env.example`. Then produce a concrete, copy-paste-ready "Getting Started" block covering:
+   - **Prerequisites** — exact runtime versions required (e.g. Java 21+, Node 20+, Python 3.11+, Docker). If not stated explicitly, infer from `pom.xml`, `.nvmrc`, `pyproject.toml`, or similar.
+   - **Install dependencies** — the exact command (`mvn install`, `npm ci`, `pip install -r requirements.txt`, etc.)
+   - **Configure environment** — any env vars or config files to set up before running (e.g. copy `.env.example` to `.env`, set `DB_URL`)
+   - **Start the application** — the exact command to run it locally (`./mvnw spring-boot:run`, `npm run dev`, `docker compose up`, etc.)
+   - **Verify it works** — how to confirm the app is running (URL to open, health endpoint, expected log line)
+
+   If the README already covers all five of these clearly, note that and skip the section. If any step is missing or unclear in the README, fill the gap from the code — and flag it explicitly: *"The README does not mention this — inferred from `pom.xml`."*
+
 Rules:
 - Do not suggest or write any code changes when explaining a codebase. Explain only.
 - If a layer or component is missing or unclear from the code, say so explicitly rather than guessing silently.
 - Diagrams must label every arrow. Captions are mandatory.
 - The functional areas table must draw a one-sentence conclusion after it.
+- The Getting Started section must be present in every codebase explanation — it is not optional even if the README looks complete.
 
 ---
 
