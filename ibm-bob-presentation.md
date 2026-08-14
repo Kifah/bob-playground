@@ -1345,47 +1345,28 @@ After Bob generates the test files, use these terminal commands:
 **Mode:** Ask
 **What it produces:** A full architectural explanation of a real-world Java banking project — with analogies, Mermaid diagrams, and a comparison table — without writing a single line of code.
 
-> 💡 This prompt demonstrates Ask mode's core value: deep understanding of an unfamiliar codebase with zero risk of accidental changes. Use it at the start of a demo or as an onboarding showcase.
+> 💡 This prompt is intentionally short. Bob already knows *how* to explain a codebase because of the rules in `bob-config/rules/ask-mode.md` — analogies, Mermaid diagrams, tables, onboarding tips. The prompt only needs to say *what* to explain. Open that file during the demo to show the audience exactly where the structured output comes from.
 
-**Setup:** Clone the project first (or just point Bob at a GitHub URL):
-```
-@https://github.com/ohbus/retail-banking
-```
+**Setup:** Point Bob at the repo with a context mention:
 
 **The prompt:**
 ```
-You are helping a new backend developer understand a Java Spring Boot banking application
-they have never seen before. The project is at https://github.com/ohbus/retail-banking
+@https://github.com/ohbus/retail-banking
 
-Explain what this application does and how it is structured. Use the following:
-
-1. A one-paragraph plain-English summary of what the system does.
-
-2. An analogy from each of these domains that maps to the architecture:
-   - A restaurant (front-of-house, kitchen, cashier, orders)
-   - A hospital (reception, triage, specialist departments, patient records)
-
-3. A Mermaid flowchart showing the main user journey through the system
-   (registration → login → view accounts → transfer funds → view history).
-
-4. A Mermaid diagram showing the key layers of the application
-   (controller → service → repository → database).
-
-5. A table listing the main functional areas of the codebase, with columns:
-   Area | Responsibility | Key classes (best guess from structure)
-
-6. Three things a new developer should understand before touching this code.
-
-Do not write or suggest any code changes. Explain only.
+Explain this banking application to a new backend developer joining the team.
+Do not suggest any code changes.
 ```
 
 **What to expect from Bob:**
-- Bob reads the repo structure, key Java files, and Spring configuration via `@` context mentions
-- Produces a multi-section explanation with diagrams and tables in a single response
-- Takes ~30–60 seconds depending on codebase size
+- Plain-English summary of the system
+- Restaurant + hospital analogies mapping to the architecture
+- User journey flowchart (registration → login → accounts → transfer → history)
+- Architecture layers diagram (controller → service → repository → database)
+- Functional areas table with key classes
+- Three concrete onboarding tips specific to this codebase
 - Runs entirely in **Ask mode** — zero file changes, zero execute actions
 
-> 🎯 **Demo tip:** Run this live. The audience watches Bob navigate a codebase it has never seen and produce architecture documentation in under a minute — something that would take a new developer days to write manually.
+> 🎯 **Demo tip:** Before running the prompt, open `bob-config/rules/ask-mode.md` and show the "Explaining an Unknown Codebase" section. Then run the prompt. The audience sees Bob produce exactly what the rule specifies — making the connection between rules and output concrete and immediate.
 
 ---
 

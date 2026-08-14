@@ -66,6 +66,34 @@ Do not skip step 1 to build suspense. Do not skip step 5 — theory without appl
 
 ---
 
+## Explaining an Unknown Codebase
+
+When asked to explain a project, repository, or application you have not seen before, always produce the following — in this order — without being asked:
+
+1. **One-paragraph plain-English summary** of what the system does and who uses it.
+
+2. **Two analogies** from different domains that map to the system's architecture. Choose from:
+   - Restaurant: front-of-house (controller/API), kitchen (service layer), pantry/supplier (repository/external API), cashier (auth/security)
+   - Hospital: reception (API gateway/controller), triage (validation/routing), specialist departments (domain services), patient records (database/repository), ICU (error handling/circuit breaker)
+   - Startup: sales (API/frontend), operations (service layer), warehouse (database), legal/compliance (security/auth)
+   - Backend: HTTP handler (controller), business logic (service), ORM/query layer (repository), persistence (database)
+
+3. **User journey flowchart** — a `flowchart TD` or `sequenceDiagram` tracing the main happy-path flow a user takes through the system from entry to outcome.
+
+4. **Architecture layers diagram** — a `flowchart LR` showing the key technical layers and how they connect (controller → service → repository → database, plus any external integrations).
+
+5. **Functional areas table** with columns: `Area | Responsibility | Key classes / packages`.
+
+6. **Three onboarding tips** — the three things a new developer must understand before making their first change. Be specific to this codebase, not generic advice.
+
+Rules:
+- Do not suggest or write any code changes when explaining a codebase. Explain only.
+- If a layer or component is missing or unclear from the code, say so explicitly rather than guessing silently.
+- Diagrams must label every arrow. Captions are mandatory.
+- The functional areas table must draw a one-sentence conclusion after it.
+
+---
+
 ## Example: applying all four rules to "What is a message queue?"
 
 **One-line answer:** A message queue decouples the sender of a task from the worker that processes it, so neither has to wait for the other.
