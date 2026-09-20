@@ -10,9 +10,10 @@ This file provides guidance to agents when working with code in this repository.
   the same `apply_diff` call.
 - **Section number stability.** Existing section numbers (1–14) must not be renumbered. Insert
   new content as lettered subsections (e.g. §6b, §6c) or named subsections under an existing §.
-- **Weather API thread.** Every feature section must demonstrate the feature through the Weather
-  API scenario. Acceptable forms: a prompt block, a config snippet, a `.bob/` file example, or a
-  shell script. A conceptual paragraph alone is not sufficient.
+- **Pure Java CLI IBAN Checker thread.** Every feature section must demonstrate the feature through the
+  Pure Java CLI IBAN Checker scenario (pure Java, CLI execution, length + "DE" check, PASS/FAIL output,
+  with spaces support added as a literate coding improvement). Acceptable forms: a prompt block,
+  a config snippet, a `.bob/` file example, or a shell script. A conceptual paragraph alone is not sufficient.
 - **Demo prompt blocks must be self-contained.** No `...` placeholders, no comments inside the
   fenced block, no instructions mixed into the prompt text. The block should be paste-and-run.
 - **Callout types are enforced:**

@@ -9,12 +9,10 @@ These rules apply whenever Bob is in Ask mode or is asked to explain a concept, 
 When explaining any technical concept, always anchor it in at least one analogy drawn from these domains.
 Choose the analogy that best fits the audience visible from context. When the audience is mixed or unknown, use all four.
 
-| Domain | Maps well to |
-|---|---|
-| **Backend programming** | Algorithms, data structures, APIs, protocols, concurrency, caching, queues |
-| **Hospital / medicine** | Triage, isolation, diagnosis, treatment pipelines, specialist referral, ICU escalation |
-| **Startup / business** | Resource constraints, prioritisation, MVPs, growth stages, team roles, pivots |
-| **Restaurant** | Queues, throughput, roles (chef / waiter / cashier), prep vs. service, peak load, mise en place |
+- **Backend programming**: Algorithms, data structures, APIs, protocols, concurrency, caching, queues
+- **Hospital / medicine**: Triage, isolation, diagnosis, treatment pipelines, specialist referral, ICU escalation
+- **Startup / business**: Resource constraints, prioritisation, MVPs, growth stages, team roles, pivots
+- **Restaurant**: Queues, throughput, roles (chef / waiter / cashier), prep vs. service, peak load, mise en place
 
 Rules:
 - The analogy must map structurally — not just superficially. If the mapping breaks down at a key point, say so explicitly.
@@ -36,19 +34,18 @@ Rules:
 - Every diagram must have a plain-English caption immediately below it explaining what it shows.
 - Keep diagrams focused — one concept per diagram. Split complex flows into multiple smaller diagrams.
 - Label all arrows. An unlabelled arrow tells the reader nothing.
-- Do not draw a diagram if a table communicates the same information more clearly.
+- Keep diagrams focused — one concept per diagram. Split complex flows into multiple smaller diagrams.
 
 ---
 
-## Use Tables for Comparisons
+## Comparisons and Breakdowns
 
-Use a table whenever the explanation compares two or more things across the same set of dimensions.
+When comparing two or more options or dimensions, use structured bullet lists or key-value blocks. Avoid raw markdown pipe tables.
 
 Rules:
-- Every table must have a header row and at least two data rows.
-- Columns must represent consistent dimensions — do not mix apples and oranges in a column.
-- For yes/no capabilities use ✅ / ❌ / Partial — never "yes/no/maybe" in plain text.
-- Follow the table immediately with one or two sentences drawing the key conclusion — do not leave the reader to infer it.
+- Group comparisons clearly by option or category.
+- State capabilities, trade-offs, and criteria explicitly with bullet points.
+- Follow any comparison immediately with one or two sentences drawing the key conclusion.
 
 ---
 
@@ -58,7 +55,7 @@ Every explanation must follow this order:
 
 1. **One-line answer** — answer the question directly in plain language before anything else.
 2. **Analogy** — anchor the concept in a familiar domain (see above).
-3. **Diagram or table** — visualise the structure, flow, or comparison.
+3. **Diagram or structured breakdown** — visualise the structure, flow, or comparison.
 4. **Precise technical explanation** — now go deep with correct terminology.
 5. **When to use / when not to use** — practical guidance, not just theory.
 
@@ -82,7 +79,7 @@ When asked to explain a project, repository, or application you have not seen be
 
 4. **Architecture layers diagram** — a `flowchart LR` showing the key technical layers and how they connect (controller → service → repository → database, plus any external integrations).
 
-5. **Functional areas table** with columns: `Area | Responsibility | Key classes / packages`.
+5. **Functional areas breakdown** — list each area with its responsibility and key classes / packages using structured bullet points.
 
 6. **Three onboarding tips** — the three things a new developer must understand before making their first change. Be specific to this codebase, not generic advice.
 
@@ -100,7 +97,7 @@ Rules:
 - Do not suggest or write any code changes when explaining a codebase. Explain only.
 - If a layer or component is missing or unclear from the code, say so explicitly rather than guessing silently.
 - Diagrams must label every arrow. Captions are mandatory.
-- The functional areas table must draw a one-sentence conclusion after it.
+- The functional areas breakdown must draw a one-sentence conclusion after it.
 - The Getting Started section must be present in every codebase explanation — it is not optional even if the README looks complete.
 
 ---
@@ -111,12 +108,10 @@ Rules:
 
 **Analogies:**
 
-| Domain | Analogy |
-|---|---|
-| Backend | A Kafka topic — the producer writes events without knowing which consumer reads them or when |
-| Hospital | A triage queue in A&E — patients are registered on arrival (message in), treated in priority order (consumer), the receptionist does not wait for the doctor to be free before accepting the next patient |
-| Startup | A founder's inbox — ideas pile up (messages), a single operator processes them one by one when capacity allows, without blocking the founder from generating more |
-| Restaurant | The order rail between the front-of-house and the kitchen — waiters clip tickets to the rail and return to serve more tables; chefs pull tickets when ready; neither blocks the other |
+- **Backend**: A Kafka topic — the producer writes events without knowing which consumer reads them or when.
+- **Hospital**: A triage queue in A&E — patients are registered on arrival (message in), treated in priority order (consumer), the receptionist does not wait for the doctor to be free before accepting the next patient.
+- **Startup**: A founder's inbox — ideas pile up (messages), a single operator processes them one by one when capacity allows, without blocking the founder from generating more.
+- **Restaurant**: The order rail between the front-of-house and the kitchen — waiters clip tickets to the rail and return to serve more tables; chefs pull tickets when ready; neither blocks the other.
 
 **Diagram:**
 

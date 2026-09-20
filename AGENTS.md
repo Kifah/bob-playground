@@ -19,8 +19,9 @@ any heading changes. Section numbers are stable references used in cross-links w
 
 - **All demo prompts** are written as copy-paste-ready fenced code blocks with no surrounding
   commentary inside the block. Keep them clean — no ellipsis, no placeholder text.
-- **Weather API** is the running demo thread throughout the file. Every new feature section must
-  include at least one Weather API concrete example (prompt, snippet, or config file).
+- **Pure Java CLI IBAN Checker** is the running demo thread throughout the file. Every new feature section must
+  include at least one Pure Java CLI IBAN Checker concrete example (pure Java, CLI execution, length + "DE" check,
+  PASS/FAIL output, spaces support as a demo improvement).
 - **Section lettering** (6b, 8b, 11a, 12b) indicates a subsection inserted after the numbered
   section without renumbering the rest. New insertions follow this pattern.
 - **Callout style**: `> 💡` for tips, `> 🎯` for demo-specific tips, `> ⚠️` for warnings and

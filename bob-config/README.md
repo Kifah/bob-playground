@@ -10,6 +10,10 @@ Clone this repo once, run the install script, and every Bob session on your mach
 
 ```
 bob-config/
+├── mcp/
+│   └── mcp.json                ← global MCP server registrations (Exa web search)
+├── commands/
+│   └── web-search.md           ← /web-search slash command
 ├── skills/
 │   └── youtube-transcript/     ← extract & summarise any YouTube video
 │       ├── SKILL.md
@@ -18,15 +22,17 @@ bob-config/
 ├── settings/
 │   └── custom_modes.yaml       ← (placeholder) shared custom modes
 ├── rules/
-│   └── (placeholder)           ← shared global rules
+│   ├── ask-mode.md             ← Ask mode explanation standards
+│   ├── common-engineering.md   ← universal engineering standards
+│   └── exa-web-tools.md        ← instructs Bob to use Exa for web search/extract
 └── README.md
 ```
 
-| Directory | Bob global path | Purpose |
-|---|---|---|
-| `skills/` | `~/.bob/skills/` | On-demand instruction sets Bob loads when task matches |
-| `settings/custom_modes.yaml` | `~/.bob/settings/custom_modes.yaml` | Custom modes available in every project |
-| `rules/` | `~/.bob/rules/` | Standing instructions injected into every conversation |
+- `mcp/mcp.json` → `~/.bob/mcp.json` — MCP server registrations available in every project
+- `commands/` → `~/.bob/commands/` — Slash commands available in every project
+- `skills/` → `~/.bob/skills/` — On-demand instruction sets Bob loads when task matches
+- `settings/custom_modes.yaml` → `~/.bob/settings/custom_modes.yaml` — Custom modes available in every project
+- `rules/` → `~/.bob/rules/` — Standing instructions injected into every conversation
 
 ---
 
@@ -141,3 +147,43 @@ Based on this video https://www.youtube.com/watch?v=qdAozfL1mXw, what gaps do we
 ```
 
 Bob will download the subtitles, clean them, read the transcript, and answer — then delete the `.vtt` file automatically.
+
+---
+
+## Available commands
+
+### `/web-search`
+
+Searches the web using the Exa MCP tool and returns results with sources.
+
+**Usage:** `/web-search <query>`
+
+**Example prompts:**
+```
+/web-search latest Spring Boot 3.3 release notes
+```
+```
+/web-search IBM Carbon Design System v11 migration guide
+```
+
+Bob will call `web_search_exa`, return a direct answer, and list sources with title, URL, and summary.
+
+**Requires:** `EXA_API_KEY` set in your shell environment (see Prerequisites below).
+
+---
+
+## Prerequisites
+
+### Exa API key
+
+The Exa MCP server uses your personal API key for authenticated access (higher rate limits).
+
+1. Get a free key at [dashboard.exa.ai/api-keys](https://dashboard.exa.ai/api-keys).
+2. Add it to your shell profile — **once, on each machine**:
+
+```sh
+echo 'export EXA_API_KEY="your-key-here"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+The key is referenced in `mcp/mcp.json` as `${EXA_API_KEY}` and is never committed to this repo.

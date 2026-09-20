@@ -57,19 +57,16 @@ Bob must follow them in all conversations unless a project-specific rule explici
 - Use `make` targets as the single entry point for repetitive operations — do not ask the developer to remember long commands.
 - Targets must be self-documenting: add a `## description` comment after each target and include a `help` target that prints them.
 - Standard targets to include in every project (use language/framework equivalents where needed):
-
-  | Target | Purpose |
-  |--------|---------|
-  | `make install` | Install all dependencies |
-  | `make build` | Compile or build the project |
-  | `make test` | Run the full test suite |
-  | `make test-unit` | Run unit tests only |
-  | `make test-coverage` | Run tests and print coverage report |
-  | `make lint` | Run linter / static analysis |
-  | `make format` | Auto-format all source files |
-  | `make run` | Start the application locally |
-  | `make clean` | Remove build artefacts and generated files |
-  | `make help` | Print all available targets with descriptions |
+  - `make install` — Install all dependencies
+  - `make build` — Compile or build the project
+  - `make test` — Run the full test suite
+  - `make test-unit` — Run unit tests only
+  - `make test-coverage` — Run tests and print coverage report
+  - `make lint` — Run linter / static analysis
+  - `make format` — Auto-format all source files
+  - `make run` — Start the application locally
+  - `make clean` — Remove build artefacts and generated files
+  - `make help` — Print all available targets with descriptions
 
 - Keep targets simple and composable — `make ci` should call `make lint test build`, not duplicate their logic.
 - Use `.PHONY` for all targets that do not produce a file output.

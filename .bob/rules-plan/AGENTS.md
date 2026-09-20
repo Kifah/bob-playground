@@ -8,8 +8,9 @@ This file provides guidance to agents when working with code in this repository.
   multiple files or converting it to a different format require explicit user approval.
 - **Section numbering is frozen at 1–14.** New sections must be inserted as lettered subsections
   (§Nb) or as named `###` subsections inside an existing numbered section.
-- **The Weather API demo thread is the anchor.** Any plan to add a new feature section must
-  include a concrete Weather API example as part of the plan — not as an afterthought.
+- **The Pure Java CLI IBAN Checker demo thread is the anchor.** Any plan to add a new feature section must
+  include a concrete Pure Java CLI IBAN Checker example (pure Java, CLI execution, length + "DE" check,
+  PASS/FAIL output, spaces support as a demo improvement) as part of the plan — not as an afterthought.
 - **Two-audience rule is a hard constraint.** Every section plan must account for both:
   - Junior Dev angle: specific commands, file names, keyboard shortcuts, code snippets
   - Project Owner angle: at least one `> 💡 *For Project Owners:*` callout explaining business value

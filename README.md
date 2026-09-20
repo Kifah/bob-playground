@@ -19,7 +19,7 @@ A public reference repository for IBM Bob 2.x — containing a full team present
 
 **[`ibm-bob-presentation.md`](ibm-bob-presentation.md)**
 
-A structured slide deck covering IBM Bob 2.0.2 for an audience of Junior Developers and Project Owners. Includes live demo scripts, copy-paste prompts, and a running Spring Boot Weather API example thread throughout.
+A structured slide deck covering IBM Bob 2.0.2 for an audience of Junior Developers and Project Owners. Includes live demo scripts, copy-paste prompts, and a running Pure Java CLI IBAN Checker example thread throughout.
 
 ### Contents at a glance
 
@@ -37,8 +37,8 @@ A structured slide deck covering IBM Bob 2.0.2 for an audience of Junior Develop
 | [§9 Subagents & Subtasks](ibm-bob-presentation.md#9-subagents--subtasks) | Background workers, interactive subtasks |
 | [§10 Custom Modes](ibm-bob-presentation.md#10-custom-modes) | `custom_modes.yaml`, `fileRegex`, parallel conversation safety |
 | [§11 MCP](ibm-bob-presentation.md#11-mcp--extending-bob) | Protocol overview, memory knowledge graph |
-| [§12 Demo: Spring Boot Weather API](ibm-bob-presentation.md#12-demo-build-a-spring-boot-weather-api) | 7-part live demo script with narration notes |
-| [§12b Prompt Playbook](ibm-bob-presentation.md#12b-ready-to-use-prompt-playbook) | Copy-paste prompts for scaffold, OpenAPI, tests |
+| [§12 Demo: Pure Java CLI IBAN Checker](ibm-bob-presentation.md#12-demo-build-a-pure-java-cli-iban-checker) | 8-part live demo script with narration notes |
+| [§12b Prompt Playbook](ibm-bob-presentation.md#12b-ready-to-use-prompt-playbook) | Copy-paste prompts for scaffold, tests, packaging |
 | [§13 Tips](ibm-bob-presentation.md#13-tips-for-getting-the-most-from-bob) | Prompt engineering, workflow tips |
 
 ---
@@ -89,7 +89,7 @@ Rules for how Bob explains things:
 
 - Analogies from four domains: backend programming, hospital, startup, restaurant
 - Mermaid diagrams for sequences, flows, states, and relationships
-- Tables for comparisons with ✅ / ❌ / Partial
+- Structured breakdowns and comparisons with ✅ / ❌ / Partial (avoiding raw pipe tables)
 - 5-step explanation structure: answer → analogy → diagram → technical → when-to-use
 
 ---
@@ -133,7 +133,7 @@ To improve the presentation:
 
 1. Edit [`ibm-bob-presentation.md`](ibm-bob-presentation.md) — follow the conventions in [`AGENTS.md`](AGENTS.md)
 2. Keep the Table of Contents in sync with any heading changes
-3. Every new feature section needs a Weather API example
+3. Every new feature section needs a Pure Java CLI IBAN Checker example
 
 ---
 

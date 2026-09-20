@@ -15,6 +15,7 @@ echo ""
 mkdir -p "$BOB_HOME/skills"
 mkdir -p "$BOB_HOME/rules"
 mkdir -p "$BOB_HOME/settings"
+mkdir -p "$BOB_HOME/commands"
 
 # ── Skills ────────────────────────────────────────────────────────────────────
 for skill_dir in "$BOB_CONFIG/skills"/*/; do
@@ -52,6 +53,31 @@ if [ -f "$modes_src" ]; then
     echo "  link  settings/custom_modes.yaml → $modes_target"
   fi
 fi
+
+# ── MCP config ────────────────────────────────────────────────────────────────
+mcp_src="$BOB_CONFIG/mcp/mcp.json"
+mcp_target="$BOB_HOME/mcp.json"
+if [ -f "$mcp_src" ]; then
+  if [ -e "$mcp_target" ] || [ -L "$mcp_target" ]; then
+    echo "  skip  mcp.json (already exists — remove manually to re-link)"
+  else
+    ln -s "$mcp_src" "$mcp_target"
+    echo "  link  mcp.json → $mcp_target"
+  fi
+fi
+
+# ── Commands ──────────────────────────────────────────────────────────────────
+for cmd_file in "$BOB_CONFIG/commands"/*.md; do
+  [ -e "$cmd_file" ] || continue   # skip if no .md files yet
+  cmd_name="$(basename "$cmd_file")"
+  target="$BOB_HOME/commands/$cmd_name"
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    echo "  skip  commands/$cmd_name (already exists)"
+  else
+    ln -s "$cmd_file" "$target"
+    echo "  link  commands/$cmd_name → $target"
+  fi
+done
 
 echo ""
 echo "Done. Start a new Bob conversation to pick up the changes."

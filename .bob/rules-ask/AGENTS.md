@@ -12,7 +12,8 @@ This file provides guidance to agents when working with code in this repository.
   Subagents & Subtasks.
 - Lettered subsections (6b, 8b, 11a, 12b) were inserted later without renumbering. They appear
   between their numbered neighbours in the file, not at the end.
-- The "Weather API" referenced throughout is a **fictional Spring Boot demo project** used as a
-  consistent example thread. It does not exist as actual code in this repository.
+- The "Pure Java CLI IBAN Checker" referenced throughout is a **fictional pure Java demo tool** (no Spring Boot,
+  no external frameworks) used as a consistent example thread. It validates German IBANs (length 22, starts with "DE")
+  via CLI with "PASS"/"FAIL" output, and supports spaces as a follow-up demo improvement.
 - IBM Bob docs are authoritative. When a user asks about a Bob feature not yet in the
   presentation, use `search_bob_docs` to ground the answer before responding.

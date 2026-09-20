@@ -1,0 +1,36 @@
+Themen aussuchen:
+
+plan-modus: mach mir einen kleine Bankdaten-validator
+erstmal für deutsche IBANs
+folgende IBANs zum testen
+
+(dann wird umgeschaltet auf Agent--> code generiert)
+- umschalten auf Ask:
+
+eventuell ne Frage 
+Stellen zum generierten code, 
+
+und dann eventuell /review modus (ob alles sauber ist)
+
+---------------
+
+auf github noch einen komplexeren Projekt aussuchen, analysieren lassen,
+gerne mit tabellen / Flowcharts...Analogie aus Regierung, Restaurant...etc
+
+---------------
+
+features wie rules, hooks, commands , skills besprechen 
+
+--------------
+
+Beispiel von skill
+
+zusammenfassung von Inhalt von https://www.youtube.com/watch?v=qMQgCMe0kh0 
+1000-1500 chars
+
+
+
+
+
+
+

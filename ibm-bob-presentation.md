@@ -24,7 +24,7 @@
 10. [Custom Modes](#10-custom-modes)
 11. [MCP — Extending Bob](#11-mcp--extending-bob)
     - [11a. MCP in Practice: The Memory Knowledge Graph](#11a-mcp-in-practice-the-memory-knowledge-graph)
-12. [DEMO: Build a Spring Boot Weather API](#12-demo-build-a-spring-boot-weather-api)
+12. [DEMO: Build a Pure Java CLI IBAN Checker](#12-demo-build-a-pure-java-cli-iban-checker)
     - [12b. Ready-to-Use Prompt Playbook](#12b-ready-to-use-prompt-playbook)
 13. [Tips for Getting the Most from Bob](#13-tips-for-getting-the-most-from-bob)
 14. [Q&A](#14-qa)
@@ -74,18 +74,18 @@ Plan mode → review the plan → Agent mode → implement → Ask mode → unde
 
 > 💡 Switch modes with `/plan`, `/agent`, `/ask` or the mode picker at the bottom of the sidebar.
 
-### Modes in the Weather API context
+### Modes in the Pure Java IBAN Checker context
 
-Here is how you would use each mode as the Weather API grows from a skeleton to a production service:
+Here is how you would use each mode as the IBAN Checker CLI tool is designed, built, and tested:
 
 | Stage | Mode | Example prompt |
 |-------|------|---------------|
-| Design the real-weather-API integration | **Plan** | *"Plan how to replace the hardcoded WeatherResponse with a live call to OpenWeatherMap. Consider error handling, API key configuration, and caching."* |
-| Implement the OpenWeatherMap client | **Agent** | *"Implement the plan. Add a WeatherClient service that calls the OpenWeatherMap current weather API and maps the response to WeatherResponse."* |
-| Understand what was built | **Ask** | *"@/src/main/java/com/example/weather/WeatherClient.java — explain how the HTTP client handles timeouts and what happens when the external API is unavailable."* |
-| Add a React frontend | **Agent** | *"Scaffold a React + Vite frontend in /frontend that calls GET /weather and renders the city and temperature."* |
-| Add Actuator / observability | **Agent** | *"Add spring-boot-starter-actuator and expose /actuator/health and /actuator/metrics. Configure a custom WeatherRequestCounter micrometer metric."* |
-| Review before a PR | **Ask** | *"@/src/main/java/com/example/weather — review the entire weather package for REST best practices, missing error handling, and hardcoded values."* |
+| Design CLI logic & rules | **Plan** | *"Plan how to build a pure Java CLI application that validates German IBANs (starts with DE, length 22) and outputs PASS or FAIL."* |
+| Implement CLI validator | **Agent** | *"Implement the plan. Add IbanChecker.java with validate() method and main(String[] args), plus JUnit 5 tests."* |
+| Understand what was built | **Ask** | *"@/src/main/java/com/example/iban/IbanChecker.java — explain how whitespace is stripped and how the CLI arguments are handled."* |
+| Add packaging / fat JAR | **Agent** | *"Configure maven-shade-plugin in pom.xml to build an executable CLI JAR with mainClass com.example.iban.IbanChecker."* |
+| Add benchmark / performance | **Agent** | *"Add a JMH benchmark to measure validation throughput of 1,000,000 IBAN checks in pure Java."* |
+| Review before a commit | **Ask** | *"@/src/main/java/com/example/iban/IbanChecker.java — review the implementation for edge cases like null, empty strings, and performance."* |
 
 ---
 
@@ -97,8 +97,8 @@ The **agentic chat sidebar** is Bob's primary workspace. It lets you write natur
 
 | Syntax | What it injects |
 |--------|----------------|
-| `@/src/WeatherController.java` | Full file contents |
-| `@/src/service` | All files in that folder (non-recursive) |
+| `@/src/IbanChecker.java` | Full file contents |
+| `@/src/com/example/iban` | All files in that folder (non-recursive) |
 | `@problems` | Current errors & warnings from the Problems panel |
 | `@terminal` | Recent terminal output |
 | `@git-changes` | Uncommitted diff |
@@ -107,7 +107,7 @@ The **agentic chat sidebar** is Bob's primary workspace. It lets you write natur
 
 **Shortcut:** Highlight any code in the editor → `Cmd+L` (Mac) / `Ctrl+L` (Win/Linux) → instantly sends it to chat.
 
-> 💡 Combine multiple mentions: *"Fix `@problems` in `@/src/api/WeatherController.java`"*
+> 💡 Combine multiple mentions: *"Fix `@problems` in `@/src/com/example/iban/IbanChecker.java`"*
 
 ---
 
@@ -242,7 +242,7 @@ Files load in **alphabetical order** and are combined with any `customInstructio
 
 ---
 
-**Weather API — practical rules setup:**
+**IBAN Checker CLI — practical rules setup:**
 
 Create the rules directories and seed them:
 ```bash
@@ -251,37 +251,24 @@ mkdir -p .bob/rules .bob/rules-agent .bob/rules-ask
 
 `.bob/rules/coding-style.md` — applies to all modes:
 ```markdown
-# Weather API — Coding Standards
+# IBAN Checker — Coding Standards
 
-## Java
-- Use Java records for immutable response DTOs (e.g. WeatherResponse) — no Lombok needed for these
-- Use constructor injection only — no @Autowired field injection
-- Use Lombok @RequiredArgsConstructor on @Service/@Component classes to generate the constructor for all final fields
-- Use Lombok @Slf4j for loggers — no manual `private static final Logger log = ...` declarations
-- Use Lombok @Data + @NoArgsConstructor for mutable request body DTOs that Jackson must deserialize
-- Never use Lombok @Data on JPA @Entity classes — use explicit getters/setters to avoid Hibernate pitfalls
+## Pure Java & CLI Rules
+- Pure standard Java only (no Spring Boot, no external framework dependencies)
+- German IBAN validation rule: starts with "DE" and exact length is 22 characters (whitespace stripped during formatting improvements)
+- CLI response: print "PASS" on stdout for valid IBANs, "FAIL" for invalid/missing input
+- Keep functions small, static, and testable without side effects
 - All public methods must have Javadoc
-- Lombok version: 1.18.34 (scope: provided)
-
-## REST
-- Return RFC 7807 ProblemDetail for all error responses
-- Use @Valid on all @RequestBody parameters
-- Never expose stack traces in HTTP responses
-
-## Configuration
-- All external values (API keys, URLs, timeouts) must be in application.properties
-- Prefix all app-specific properties with `weather.`
 ```
 
 `.bob/rules-agent/testing.md` — applies only in Agent mode:
 ```markdown
 # Testing Rules (Agent mode)
 
-- Always write a unit test alongside any new controller method
-- Unit tests use @WebMvcTest + MockMvc
-- Integration tests use @SpringBootTest(webEnvironment = RANDOM_PORT)
+- Always write unit tests with JUnit 5 (junit-jupiter)
+- Test both positive (PASS) and negative (FAIL) scenarios
+- Cover nulls, empty strings, whitespace variations, wrong country prefixes, and incorrect lengths
 - Test method names follow: should_<expectedBehaviour>_when_<condition>
-- Assert HTTP status before asserting response body
 ```
 
 `.bob/rules-ask/review.md` — applies only in Ask mode:
@@ -298,7 +285,7 @@ Never modify files in Ask mode.
 **Team standardisation — commit everything:**
 ```bash
 git add .bob/rules/ .bob/rules-agent/ .bob/rules-ask/
-git commit -m "Add Bob custom rules for Weather API"
+git commit -m "Add Bob custom rules for IBAN Checker"
 ```
 
 > 💡 *Writing effective rules — three principles:*
@@ -361,19 +348,18 @@ Global hooks always run. Workspace hooks are merged on top and apply only to the
 
 ---
 
-### Weather API — four practical hook examples
+### IBAN Checker CLI — four practical hook examples
 
 **1. `SessionStart` — inject live project context into every session**
 
-Automatically tells Bob what branch you're on and whether the app is currently running — without you typing it:
+Automatically tells Bob what branch you're on and the Java environment — without you typing it:
 
 `.bob/hooks/session-context.sh`:
 ```bash
 #!/bin/sh
-echo "Project: Weather API (Spring Boot 4.x, Maven)"
+echo "Project: Pure Java CLI IBAN Checker (Maven)"
 echo "Git branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
 echo "Java version: $(java -version 2>&1 | head -1)"
-echo "App running: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/actuator/health 2>/dev/null || echo 'not running')"
 ```
 
 `.bob/settings.json`:
@@ -492,7 +478,7 @@ fi
 
 ---
 
-**Complete `.bob/settings.json` for the Weather API — all four hooks combined:**
+**Complete `.bob/settings.json` for the IBAN Checker API — all four hooks combined:**
 ```json
 {
   "hooks": {
@@ -587,11 +573,11 @@ Slash commands let you trigger actions, switch modes, and run **custom reusable 
 
 > ⚠️ Branch comparisons work with both GitHub and GitLab. Issue validation (`--issue-coverage`) requires a GitHub account and issue URL.
 
-**Weather API — practical use:**
+**IBAN Checker CLI — practical use:**
 ```
 /review main --issue-coverage
 ```
-Run this before every PR on the Weather API to catch bugs, security issues in `WeatherClient`, and verify that the OpenWeatherMap integration addresses the linked ticket.
+Run this before every PR on the IBAN Checker to catch bugs, validation edge cases in `IbanChecker`, and verify that the implementation addresses the linked ticket.
 
 ---
 
@@ -601,17 +587,17 @@ Create a markdown file in `.bob/commands/` — the filename becomes the command:
 
 ```
 .bob/commands/
-├── test-api.md       →  /test-api
+├── test-cli.md       →  /test-cli
 └── security-check.md →  /security-check
 ```
 
 > ⚠️ Do not name a custom command file `review.md` — `/review` is a built-in command and cannot be overridden by a custom command file.
 
-Example `.bob/commands/test-api.md`:
+Example `.bob/commands/test-cli.md`:
 ```markdown
-Run the full Weather API test suite and report:
+Run the full IBAN Checker test suite and report:
 1. Which tests passed and which failed
-2. Code coverage percentage for WeatherController and WeatherService
+2. Code coverage percentage for IbanChecker
 3. Any test that took longer than 500ms
 ```
 
@@ -631,45 +617,32 @@ For complex multi-step tasks, Bob maintains a **live checklist** in the UI:
 - Only one item "in progress" at a time
 - Clear view of what's done and what remains
 
-**What the todo list looks like mid-task** — after asking Bob to scaffold the Weather API and add tests:
+**What the todo list looks like mid-task** — after asking Bob to scaffold the pure Java CLI IBAN Checker and add tests:
 
 ```
 [ ] Create Maven project structure
-[x] Generate pom.xml with spring-boot-starter-web
-[x] Create WeatherResponse.java record
-[x] Create WeatherController.java with GET /weather
-[-] Create WeatherApplication.java main class       ← in progress
-[ ] Create application.properties
-[ ] Create WeatherControllerUnitTest.java
-[ ] Create WeatherControllerIntegrationTest.java
+[x] Generate minimal pom.xml with junit-jupiter
+[x] Create IbanChecker.java with validate() method
+[-] Implement main(String[] args) with PASS/FAIL CLI output  ← in progress
+[ ] Create IbanCheckerTest.java covering valid, invalid, and null inputs
+[ ] Verify compilation and test suite execution
 ```
 
-**Weather API — todo-worthy prompts** (tasks complex enough that Bob will auto-generate a todo list):
+**IBAN Checker CLI — todo-worthy prompts** (tasks complex enough that Bob will auto-generate a todo list):
 
 ```
-Add OpenWeatherMap integration to the Weather API:
-- Add a WeatherClient service using Spring's RestClient
-- Inject the API key from application.properties (weather.api.key)
-- Add error handling for API timeouts and 4xx/5xx responses
-- Add a 60-second in-memory cache using Caffeine
-- Update WeatherController to use WeatherClient instead of the hardcoded value
-- Update WeatherControllerUnitTest to mock WeatherClient
+Build a pure Java CLI IBAN Checker:
+- Implement IbanChecker.java with validate(String iban) method
+- Strip all whitespace and check that it starts with "DE" and has exact length of 22
+- Main method prints "PASS" or "FAIL" to stdout
+- Add comprehensive JUnit 5 unit tests covering all edge cases
 ```
 
 ```
-Add full observability to the Weather API:
-- Add spring-boot-starter-actuator
-- Expose /actuator/health, /actuator/info, /actuator/metrics
-- Add a Micrometer counter: weather.requests.total (tagged by city)
-- Add a Micrometer timer: weather.fetch.duration (for the external API call)
-- Add structured JSON logging with a traceId field on every request
-```
-
-```
-Containerise and deploy the Weather API:
-- Create a multi-stage Dockerfile (build with Maven, run with Eclipse Temurin JRE 21 slim)
-- Create a docker-compose.yml that runs the app on port 8080
-- Create a GitHub Actions workflow (.github/workflows/ci.yml) that builds, tests, and pushes the image to GitHub Container Registry on every push to main
+Package the IBAN Checker as a standalone CLI tool:
+- Configure maven-shade-plugin or maven-assembly-plugin to produce a runnable fat JAR
+- Add a shell wrapper script bin/iban-check for easy terminal execution
+- Add automated end-to-end CLI assertion tests in bash
 ```
 
 ### Rollback
@@ -715,57 +688,57 @@ This design is deliberate: loading every skill's full body into every conversati
 **Skill file location:**
 ```
 .bob/skills/
-├── openapi-documenter/SKILL.md    ← project-scoped
-└── spring-boot-test-writer/SKILL.md
+├── pure-java-test-writer/SKILL.md    ← project-scoped
+└── cli-packager/SKILL.md
 
 ~/.bob/skills/
-└── security-reviewer/SKILL.md    ← global (available in all projects)
+└── security-reviewer/SKILL.md        ← global (available in all projects)
 ```
 
-**Example: a `spring-boot-test-writer` skill for the Weather API project**
+**Example: a `pure-java-test-writer` skill for the IBAN Checker project**
 
-`.bob/skills/spring-boot-test-writer/SKILL.md`:
+`.bob/skills/pure-java-test-writer/SKILL.md`:
 ```markdown
 ---
-name: spring-boot-test-writer
-description: Writes unit and integration tests for Spring Boot REST controllers following project conventions.
+name: pure-java-test-writer
+description: Writes comprehensive JUnit 5 unit tests for pure Java CLI and utility classes.
 ---
 
 When writing tests for this project, always:
-- Use @WebMvcTest for controller unit tests with MockMvc
-- Use @SpringBootTest(webEnvironment = RANDOM_PORT) with TestRestTemplate for integration tests
-- Name unit test classes: <ClassName>UnitTest.java
-- Name integration test classes: <ClassName>IntegrationTest.java
-- Place all test files under src/test/java mirroring the main source structure
-- Assert HTTP status codes first, then response body fields
-- Use AssertJ assertions (assertThat), never JUnit 4 assert*() methods
-- Add a @DisplayName on every @Test method describing the scenario in plain English
+- Use JUnit 5 Jupiter (`org.junit.jupiter.api.Test`, `ParameterizedTest`, `ValueSource`)
+- Name test classes: `<ClassName>Test.java`
+- Place all test files under `src/test/java` mirroring the main package structure
+- Cover happy paths, edge cases (whitespace, lowercase/uppercase, boundaries), and null inputs
+- Test CLI `main(String[] args)` behavior and exit codes / stdout output
+- Add a `@DisplayName` on every `@Test` method describing the scenario in plain English
 ```
 
 **Activating the skill in chat:**
 ```
-Use the spring-boot-test-writer skill.
-Write tests for WeatherController covering:
-- Happy path: GET /weather returns 200 with city and temperature
-- Error path: external API unavailable returns 503
+Use the pure-java-test-writer skill.
+Write tests for IbanChecker covering:
+- Valid German IBAN with exact 22 chars and DE prefix -> PASS
+- Valid German IBAN containing internal whitespace -> PASS
+- Invalid country prefix (e.g. FR, GB) -> FAIL
+- Invalid length (<22 or >22) -> FAIL
+- Null or empty input -> FAIL
 ```
 
-**Another example: an `openapi-documenter` skill**
+**Another example: a `cli-packager` skill**
 
-`.bob/skills/openapi-documenter/SKILL.md`:
+`.bob/skills/cli-packager/SKILL.md`:
 ```markdown
 ---
-name: openapi-documenter
-description: Adds SpringDoc OpenAPI 3 annotations to Spring Boot REST controllers.
+name: cli-packager
+description: Packages pure Java applications into standalone executable CLI JARs using Maven plugins.
 ---
 
-When adding OpenAPI documentation:
-- Always use springdoc-openapi-starter-webmvc-ui (Spring Boot 4.x compatible)
-- Annotate each controller method with @Operation(summary, description)
-- Annotate each response with @ApiResponse(responseCode, description, content)
-- Use @Schema on response model fields to describe the data type and example value
-- Never change existing endpoint logic — annotations only
-- After annotating, always confirm the Swagger UI URL: http://localhost:8080/swagger-ui.html
+When configuring standalone CLI packaging:
+- Use maven-shade-plugin or maven-assembly-plugin in pom.xml
+- Set the mainClass to the application entry point (e.g. com.example.iban.IbanChecker)
+- Configure executable JAR output in the target/ directory
+- Generate a companion shell wrapper script in bin/
+- Document copy-paste CLI execution commands
 ```
 
 > 💡 *Team use case:* Commit skills to `.bob/skills/` so every developer on the team benefits from the same accumulated best practices — without having to re-explain them in every prompt.
@@ -792,36 +765,34 @@ Bob spawns a subagent when a task is clearly self-contained, would generate larg
 - You **approve the spawn** before it starts
 - `fork_context: true` passes parent conversation history if needed
 
-**Weather API — subagent scenario:**
+**IBAN Checker CLI — subagent scenario:**
 
-You've asked Bob to integrate the OpenWeatherMap API. Before writing a single line of code, Bob needs to understand the current project structure: what files exist, what the response model looks like, what error handling is already in place, and what test coverage exists.
+You've asked Bob to optimise the pure Java IBAN validation logic. Before writing a single line of code, Bob needs to explore the current project structure: what classes exist, how the validation is implemented, and what test coverage exists.
 
-That exploration would generate 30–40 tool calls and flood your main context with noise. Instead, Bob spawns an `explore` subagent:
+That exploration would generate unnecessary noise in your main context. Instead, Bob spawns an `explore` subagent:
 
 ```
 Bob spawns subagent (explore):
-  "Map the current Weather API project. For each Java file, summarise:
-   - Its role (controller / service / model / test)
-   - What it currently imports and returns
-   - Any error handling present
+  "Map the current IBAN Checker project. For each Java file, summarise:
+   - Its role (CLI entry point / validator / test)
+   - What methods exist and their validation logic
+   - Test cases already covered
    Return a structured summary only."
 ```
 
 The subagent runs silently and returns:
 ```
 Summary returned to parent:
-  - WeatherController.java   → GET /weather, returns hardcoded WeatherResponse, no error handling
-  - WeatherResponse.java     → Java record, fields: city (String), temperature (int)
-  - WeatherApplication.java  → @SpringBootApplication main class
-  - WeatherControllerUnitTest.java → MockMvc test, covers 200 happy path only
-  - No service layer, no external HTTP client, no caching
+  - IbanChecker.java     → contains validate(String) & main(String[] args), prints PASS/FAIL
+  - IbanCheckerTest.java → JUnit 5 tests covering happy path and edge cases
+  - Zero external framework dependencies; pure standard Java 21
 ```
 
 Bob now has exactly what it needs — and your main context is clean for the actual implementation.
 
-**When Bob will NOT use a subagent** on the Weather API:
-- You ask it to add a field to `WeatherResponse.java` → 1 direct tool call, no subagent
-- You ask it to explain `WeatherController.java` → 1 `read_file` call, no subagent
+**When Bob will NOT use a subagent** on the IBAN Checker:
+- You ask it to adjust the regex or length in `IbanChecker.java` → 1 direct tool call, no subagent
+- You ask it to explain `IbanChecker.java` → 1 `read_file` call, no subagent
 - You ask it to fix a compilation error shown in `@problems` → already has context, no subagent
 
 ### Subtasks (visible, interactive)
@@ -830,51 +801,32 @@ Bob creates a subtask for work that benefits from its own breadcrumb and convers
 
 > 💡 *Familiar concept:* Subtasks are **Git branches for conversations** — you open a new branch for a self-contained feature so it doesn't pollute `main`; Bob opens a new conversation thread with its own breadcrumb and todo list so the work doesn't pollute the main chat. When the subtask is done, the result comes back as a summary — like a PR merge, but for context.
 
-**Weather API — subtask scenario:**
+**IBAN Checker CLI — subtask scenario:**
 
-You're adding a full React frontend to the Weather API. This is a significant, multi-hour piece of work that is logically separate from the backend — it deserves its own conversation, its own todo list, and its own breadcrumb so you can switch back and forth.
+You're adding native GraalVM packaging and a cross-platform CLI installer for the IBAN Checker. This is a distinct piece of work that deserves its own conversation thread and dedicated todo list.
 
 **Prompt that triggers a subtask:**
 ```
-Create a subtask to scaffold a React + Vite frontend for the Weather API.
+Create a subtask to configure GraalVM Native Image compilation for the IBAN Checker.
 
-The frontend should:
-- Live in a /frontend directory at project root
-- Have a single page that calls GET http://localhost:8080/weather on load
-- Display the city name and temperature in a clean card layout
-- Show a loading spinner while the request is in flight
-- Show an error message if the API is unavailable
-
-Start the subtask in Plan mode to design the component structure first,
-then switch to Agent mode to implement it.
+Requirements:
+- Add native-maven-plugin to pom.xml
+- Configure mainClass com.example.iban.IbanChecker
+- Add a GitHub Actions workflow to build native binaries for macOS, Linux, and Windows
+- Ensure the compiled binary runs instantly (<10ms) and outputs PASS or FAIL
 ```
 
 What you see in the UI:
 ```
-Main conversation  ──→  "Weather API — React Frontend"  [breadcrumb]
+Main conversation  ──→  "IBAN Checker — GraalVM Native CLI"  [breadcrumb]
                               ↓
-                         Plan mode: component structure designed
+                         Plan mode: native-maven-plugin configuration designed
                               ↓
-                         Agent mode: App.jsx, WeatherCard.jsx,
-                                     api.js, index.css generated
+                         Agent mode: pom.xml updated, .github/workflows/native.yml created
                               ↓
-                         Todo list tracking each file
+                         Todo list tracking each configuration step
                               ↓
                          Summary returned to main conversation
-```
-
-**Other subtask-worthy Weather API expansions:**
-
-```
-Create a subtask to add a Kubernetes deployment for the Weather API.
-Include: Deployment, Service, ConfigMap for API key, HorizontalPodAutoscaler.
-Start in Plan mode.
-```
-
-```
-Create a subtask to set up Prometheus + Grafana monitoring for the Weather API.
-Include: docker-compose additions, a pre-built Grafana dashboard JSON
-that visualises weather.requests.total and weather.fetch.duration metrics.
 ```
 
 > 💡 *Rule of thumb:* Subagent = silent helper that reports back. Subtask = a mini project you can watch, interact with, and navigate to independently in the UI.
@@ -895,98 +847,69 @@ You can also **override built-in modes** by using the same slug (`ask`, `agent`,
 
 > 💡 Custom modes and custom rules work together. A mode's `customInstructions` field in YAML is the inline equivalent of a rules file — but for larger or team-shared rule sets, prefer a dedicated file in `.bob/rules-{mode-slug}/` (see §6). Files in that directory are loaded alongside `customInstructions`, in alphabetical order.
 
-### Custom modes for the Weather API project
+### Custom modes for the IBAN Checker CLI project
 
-Here are four custom modes you would realistically commit to `.bob/custom_modes.yaml` as the Weather API grows:
+Here are custom modes you would realistically commit to `.bob/custom_modes.yaml` as the IBAN Checker tool evolves:
 
-**1. API Security Reviewer** — read-only, safe to run on any branch, zero edit risk:
+**1. Code Quality Reviewer** — read-only, safe to run on any branch, zero edit risk:
 ```yaml
 customModes:
-  - slug: security-reviewer
-    name: 🔒 Security Reviewer
-    description: Reviews code for security issues only. Cannot edit files.
+  - slug: quality-reviewer
+    name: 🔒 Quality Reviewer
+    description: Reviews pure Java code for algorithmic correctness, null safety, and performance.
     roleDefinition: >
-      You are a security engineer specialising in Spring Boot REST API vulnerabilities.
-      Review code for OWASP Top 10 issues, hardcoded secrets, missing input validation,
-      and insecure HTTP configurations. Never modify files.
-    whenToUse: Use before merging any PR that touches controllers, configuration, or dependencies.
+      You are a senior Java engineer specialising in pure Java utility libraries and CLI tools.
+      Review code for boundary conditions, sanitisation, performance, and memory efficiency. Never modify files.
+    whenToUse: Use before merging any PR or commit touching validation logic.
     customInstructions: |
-      Focus on: exposed secrets in application.properties, missing @Valid annotations,
-      unhandled exceptions leaking stack traces, CORS misconfiguration, and
-      dependency vulnerabilities in pom.xml. Report findings as a numbered list
-      with severity (Critical / High / Medium / Low) and a suggested fix for each.
+      Focus on: null/empty edge cases, Unicode whitespace handling, string allocations,
+      and clean JUnit 5 test coverage. Report findings as a numbered list with suggested fixes.
     groups:
       - read
       - mcp
 ```
 
-**2. OpenAPI Documenter** — edits Java files only, cannot touch tests or config:
+**2. Pure Java Test Specialist** — edits Java test files only, cannot touch production logic:
 ```yaml
-  - slug: openapi-documenter
-    name: 📄 OpenAPI Documenter
-    description: Adds SpringDoc OpenAPI annotations to controllers. Java files only.
+  - slug: test-writer
+    name: 🧪 Test Specialist
+    description: Writes JUnit 5 tests for pure Java classes. Test files only.
     roleDefinition: >
-      You are a technical writer specialising in OpenAPI 3 documentation for Spring Boot.
-      Add @Operation, @ApiResponse, and @Schema annotations. Never change endpoint logic.
-    whenToUse: Use when a new controller or endpoint needs Swagger documentation.
+      You are a QA automation specialist specialising in JUnit 5 unit tests for pure Java applications.
+    whenToUse: Use when writing or expanding test suites.
     customInstructions: |
-      Always use springdoc-openapi-starter-webmvc-ui.
-      After annotating, confirm the Swagger UI URL: http://localhost:8080/swagger-ui.html.
+      - Use JUnit 5 Jupiter assertions and parameterized tests
+      - Always cover happy paths, boundary lengths, invalid prefixes, and malformed strings
     groups:
       - read
       - - edit
-        - fileRegex: ".*\\.java$"
-          description: Java source files only
+        - fileRegex: "src/test/java/.*\\.java$"
+          description: Java test files only
+      - execute
       - skill
 ```
 
-**3. DevOps Assistant** — can edit only infrastructure files, cannot touch Java source:
+**3. CLI & Packaging Specialist** — edits build and packaging files only:
 ```yaml
-  - slug: devops
-    name: 🚀 DevOps Assistant
-    description: Manages Dockerfile, docker-compose, CI/CD, and Kubernetes manifests.
+  - slug: packaging-dev
+    name: 📦 Packaging Specialist
+    description: Manages pom.xml, fat JAR packaging, shell wrappers, and GitHub Actions.
     roleDefinition: >
-      You are a DevOps engineer responsible for containerisation, CI/CD pipelines,
-      and Kubernetes deployments for a Spring Boot microservice.
-    whenToUse: Use for deployment, containerisation, and infrastructure tasks.
+      You are a build engineer specialising in Maven packaging, CLI distributions, and GraalVM native binaries.
+    whenToUse: Use for build configuration, packaging, and release automation.
     customInstructions: |
-      - Always use multi-stage Docker builds (Maven build + JRE runtime image)
-      - Use Eclipse Temurin JRE 21 slim as the runtime base image
-      - GitHub Actions workflows must include: build, test, and push-to-registry stages
-      - Kubernetes manifests must include resource requests/limits and liveness/readiness probes
+      - Configure maven-shade-plugin or native-maven-plugin for CLI distribution
+      - Ensure executable binaries run with zero external runtime dependencies
     groups:
       - read
       - - edit
-        - fileRegex: "Dockerfile|docker-compose.*\\.yml|\\.github/.*\\.yml|k8s/.*\\.yaml"
-          description: Infrastructure files only
+        - fileRegex: "pom\\.xml|\\.github/.*|bin/.*"
+          description: Build and release files only
       - execute
       - mcp
 ```
 
-**4. Frontend Developer** — scoped to the /frontend directory, cannot touch backend Java:
-```yaml
-  - slug: frontend-dev
-    name: 🎨 Frontend Developer
-    description: Builds and modifies the React/Vite frontend. Cannot touch Java source.
-    roleDefinition: >
-      You are a React developer building a frontend for a Spring Boot Weather API.
-      The backend exposes GET /weather returning { "city": "Berlin", "temperature": 20 }.
-    whenToUse: Use for all frontend work in the /frontend directory.
-    customInstructions: |
-      - Use React 18 with functional components and hooks only
-      - Use Vite as the build tool
-      - Use fetch() for API calls, no axios
-      - Handle loading and error states on every API call
-      - Backend runs on http://localhost:8080 — use a Vite proxy for /weather
-    groups:
-      - read
-      - - edit
-        - fileRegex: "^frontend/.*"
-          description: /frontend directory only
-      - execute
-```
-
-> 💡 All four modes can be committed to `.bob/custom_modes.yaml` together. They appear in Bob's mode picker and as slash commands (`/security-reviewer`, `/openapi-documenter`, `/devops`, `/frontend-dev`) immediately after committing the file.
+> 💡 These custom modes can be committed to `.bob/custom_modes.yaml` together. They appear in Bob's mode picker and as slash commands (`/quality-reviewer`, `/test-writer`, `/packaging-dev`) immediately after committing the file.
 
 ---
 
@@ -1054,30 +977,38 @@ Store the following in the knowledge graph:
 
 ---
 
-## 12. DEMO: Build a Spring Boot Weather API
+## 12. DEMO: Build a Pure Java CLI IBAN Checker
 
-> **Goal:** Show IBM Bob's core capabilities end-to-end through building a real, runnable Spring Boot REST API — starting with a hardcoded value and evolving it step by step through Bob features.
+> **Goal:** Show IBM Bob's core capabilities end-to-end through building a pure, dependency-free Java CLI tool — starting with simple validation (starts with "DE", length 22) and iteratively improving it via Literate Coding to support formatted IBANs with spaces.
 
 ### Demo Setup (do before presenting)
 
 - [ ] IBM Bob open, workspace empty or fresh folder
 - [ ] Auto-approve: **Read ON**, **Edit & Execute OFF** (manual — audience sees every step)
 - [ ] Java 21+ and Maven available in terminal
-- [ ] Browser or Postman ready for `http://localhost:8080/weather`
+- [ ] Terminal open and ready for CLI execution
 - [ ] Font size bumped up for screen visibility
 
 ---
 
 ### Demo Part 1 — Plan Mode: Design before coding
 
-**Feature:** Plan mode + agentic chat  
-**⏱ Expected Bob processing time:** < 20 sec
+**Feature:** Plan mode + agentic chat
+**⏱ Expected Bob processing time:** < 15 sec
 
 **Prompt:**
 ```
-I want to build a Spring Boot REST API with a single GET endpoint:
-GET /weather — returning a fixed hardcoded JSON for now:
-{ "location": "London", "temperature": "18°C", "condition": "Cloudy" }
+I want to build a pure Java CLI application (single class with main method, no external frameworks, no Spring Boot) that validates German IBAN numbers passed as a command-line argument.
+
+Requirements:
+- Input: IBAN string passed as CLI argument (args[0])
+- Initial validation rules:
+  1. Must start with "DE"
+  2. Total length must be exactly 22 characters (e.g. "DE89370400440532013000")
+- Output:
+  - Prints "PASS" to stdout if valid
+  - Prints "FAIL" to stdout if invalid or missing arguments
+- Single class: IbanChecker.java in package com.example.iban
 
 Create a plan for this project as a checklist in a plan.md file.
 ```
@@ -1091,17 +1022,22 @@ Create a plan for this project as a checklist in a plan.md file.
 
 ### Demo Part 2 — Agent Mode: Generate the project
 
-**Feature:** Agent mode, multi-file generation, todo tracking, approval flow  
-**⏱ Expected Bob processing time:** ~25 sec
+**Feature:** Agent mode, file generation, todo tracking, approval flow
+**⏱ Expected Bob processing time:** ~15 sec
 
 **Switch to Agent mode, then run:**
 ```
-Implement the plan from plan.md. Generate a complete Spring Boot Maven project:
-- WeatherController.java  →  GET /weather returning hardcoded JSON
-- WeatherResponse.java    →  response model
-- Application.java        →  main class
-- pom.xml                 →  with spring-boot-starter-web dependency
-- application.properties  →  server.port=8080
+Implement the plan from plan.md. Generate a lightweight pure Java Maven project:
+- Java 21
+- Main class: src/main/java/com/example/iban/IbanChecker.java with:
+  - public static boolean validate(String iban) -> checks startsWith("DE") and length() == 22
+  - public static void main(String[] args) -> prints "PASS" or "FAIL"
+- Test class: src/test/java/com/example/iban/IbanCheckerTest.java with JUnit 5 covering:
+  - Valid DE IBAN without spaces ("DE89370400440532013000") -> PASS
+  - Invalid prefix (e.g. "FR1420041010050500013M02606") -> FAIL
+  - Invalid length ("DE123456") -> FAIL
+  - Null / empty string / missing CLI argument -> FAIL
+- pom.xml with only junit-jupiter dependency (no Spring, no extra dependencies)
 
 Do not run anything yet.
 ```
@@ -1113,39 +1049,40 @@ Do not run anything yet.
 
 ---
 
-### Demo Part 3 — Execute: Run the application
+### Demo Part 3 — Execute: Compile & Run via CLI
 
-**Feature:** Execute approval, terminal integration  
-**⏱ Expected Bob processing time:** < 10 sec (Maven first-run download may take longer — warn audience)
+**Feature:** Execute approval, terminal integration
+**⏱ Expected Bob processing time:** < 5 sec
 
 **Prompt:**
 ```
-Run the application using Maven.
+Compile and run the IBAN Checker CLI with sample IBANs.
 ```
 
 **Narrate:**
 - Bob proposes an **Execute** action — show the exact command before approving
-- *"I see what Bob wants to run before it runs"*
-- Open browser to `http://localhost:8080/weather` — show the live hardcoded JSON
-
-> ⚠️ Pre-warm Maven before the demo to avoid the first-run dependency download exceeding 30 seconds.
+- Show live execution in terminal:
+  - `java -cp target/classes com.example.iban.IbanChecker "DE89370400440532013000"` → `PASS`
+  - `java -cp target/classes com.example.iban.IbanChecker "FR1420041010050500013M02606"` → `FAIL`
+  - `java -cp target/classes com.example.iban.IbanChecker "DE123"` → `FAIL`
+  - Show that `"DE89 3704 0044 0532 0130 00"` (with spaces) outputs `FAIL` initially — setting up the next demo step!
 
 ---
 
-### Demo Part 4 — Literate Coding: Edit inline
+### Demo Part 4 — Literate Coding: Support IBANs with Spaces
 
-**Feature:** Literate coding  
-**⏱ Expected Bob processing time:** < 15 sec
+**Feature:** Literate coding
+**⏱ Expected Bob processing time:** < 10 sec
 
 **Steps:**
-1. Open `WeatherResponse.java` in the editor
+1. Open `IbanChecker.java` in the editor
 2. Press `Cmd+I` / `Ctrl+I` (or click the magic wand icon)
-3. Type above the hardcoded values:
+3. Type above the validate method:
 ```
-// Change the temperature to "22°C" and condition to "Sunny"
+// Strip all whitespace/spaces from the input IBAN before checking prefix and length
 ```
 4. Press `Cmd+Enter` → show the inline diff → accept it
-5. Restart the app, refresh the browser — show the updated response
+5. Run `java -cp target/classes com.example.iban.IbanChecker "DE89 3704 0044 0532 0130 00"` → verify it now prints `PASS`!
 
 **Narrate:**
 - *"No chat. My instruction directly in the file."*
@@ -1155,13 +1092,13 @@ Run the application using Maven.
 
 ### Demo Part 5 — Context Mentions & Ask Mode: Explain the code
 
-**Feature:** Ask mode + context mentions  
-**⏱ Expected Bob processing time:** < 15 sec
+**Feature:** Ask mode + context mentions
+**⏱ Expected Bob processing time:** < 10 sec
 
 **Switch to Ask mode, then run:**
 ```
-@/src/main/java/com/example/weather/WeatherController.java
-Explain what this controller does and how Spring Boot routes the GET /weather request to it.
+@/src/main/java/com/example/iban/IbanChecker.java
+Explain how the validate method handles null and whitespace sanitisation, and why the method design is pure and thread-safe.
 ```
 
 **Narrate:**
@@ -1173,8 +1110,8 @@ Explain what this controller does and how Spring Boot routes the GET /weather re
 
 ### Demo Part 6 — /init: Persistent project knowledge
 
-**Feature:** /init and AGENTS.md  
-**⏱ Expected Bob processing time:** ~20 sec
+**Feature:** /init and AGENTS.md
+**⏱ Expected Bob processing time:** ~15 sec
 
 **Switch to Agent mode, then run:**
 ```
@@ -1191,17 +1128,17 @@ Explain what this controller does and how Spring Boot routes the GET /weather re
 
 ### Demo Part 7 — Rollback: Undo safely
 
-**Feature:** Rollback  
+**Feature:** Rollback
 **⏱ Expected Bob processing time:** Instant
 
 **Steps:**
 1. Ask Bob to make a clearly visible wrong change:
 ```
-Change the endpoint path from /weather to /forecast
+Change the valid output message from PASS to OK_VALIDATED
 ```
 2. Approve the file edit — show the change in the editor
 3. Hover over the *previous* prompt in chat → click **Rollback**
-4. Show the file instantly restored
+4. Show the file instantly restored to `PASS`
 
 **Narrate:**
 - *"No Git commands. Roll back to any point in the conversation."*
@@ -1211,19 +1148,19 @@ Change the endpoint path from /weather to /forecast
 
 ### Optional — Demo Part 8: Custom slash command
 
-**Feature:** Custom slash commands  
-**⏱ Expected Bob processing time:** < 15 sec
+**Feature:** Custom slash commands
+**⏱ Expected Bob processing time:** < 10 sec
 
 **Steps:**
 1. Show (or create live) `.bob/commands/review.md`:
 ```markdown
 Review the current open file for:
-- REST API best practices
-- Missing error handling
-- Any hardcoded values that should be configurable
+- Edge case handling (nulls, empty strings, Unicode whitespace)
+- Performance and memory allocations
+- Clean single-responsibility method design
 Provide specific, actionable feedback with code examples.
 ```
-2. Type `/review` in chat — show the autocomplete — run it against `WeatherController.java`
+2. Type `/review` in chat — show the autocomplete — run it against `IbanChecker.java`
 
 **Narrate:**
 - *"One command. Standardised. Checked into version control. Available to every team member."*
@@ -1236,107 +1173,90 @@ Provide specific, actionable feedback with code examples.
 
 ---
 
-### Prompt 1 — Scaffold the Spring Boot Weather API
+### Prompt 1 — Scaffold the Pure Java CLI IBAN Checker
 
 **Mode:** Agent
-**What it produces:** A fully runnable Spring Boot 4.x Maven project with a single `GET /weather` endpoint returning a hardcoded JSON response.
+**What it produces:** A pure Java project with a single `IbanChecker.java` CLI class and JUnit 5 tests.
 
 ```
-Create a Spring Boot REST API project using the latest stable Spring Boot 4.x with Maven.
+Create a pure Java CLI application for German IBAN validation using Java 21 with Maven.
 
 Requirements:
-- Java 21
-- Single GET endpoint: GET /weather
-- Returns the following hardcoded JSON response body:
-  { "city": "Berlin", "temperature": 20 }
-- Response model: WeatherResponse record with fields city (String) and temperature (int)
-- Controller: WeatherController, mapped to /weather
-- Main class: WeatherApplication
-- application.properties: server.port=8080
-- pom.xml: include only spring-boot-starter-web and spring-boot-starter-test
+- Pure standard Java (no Spring Boot, no external framework dependencies)
+- Main class: src/main/java/com/example/iban/IbanChecker.java
+- Method: public static boolean validate(String iban)
+  - Return true if it starts with "DE" and has exact length of 22 characters (e.g. "DE89370400440532013000")
+  - Return false for any null, empty, wrong prefix, or wrong length input
+- Method: public static void main(String[] args)
+  - If args is empty or args[0] is invalid -> System.out.println("FAIL")
+  - If args[0] is valid -> System.out.println("PASS")
+- pom.xml: include only junit-jupiter for unit testing
 
-Do not add any external API calls, databases, or extra dependencies.
+Do not add extra dependencies.
 Do not run the application yet.
 ```
 
-**Expected output:** `WeatherApplication.java`, `WeatherController.java`, `WeatherResponse.java`, `pom.xml`, `application.properties` — all in the correct Maven directory structure.
+**Expected output:** `IbanChecker.java`, `pom.xml` in standard Maven directory structure.
 
 ---
 
-### Prompt 2 — Add OpenAPI / Swagger Documentation
+### Prompt 2 — Generate Comprehensive JUnit 5 Tests
 
 **Mode:** Agent
-**What it produces:** SpringDoc OpenAPI integration, a live Swagger UI endpoint, and a usage explanation.
+**What it produces:** Complete unit test suite covering happy paths and all edge cases.
 
 ```
-Add OpenAPI 3 documentation to the existing Spring Boot Weather API using springdoc-openapi.
+Write comprehensive JUnit 5 unit tests for IbanChecker in src/test/java/com/example/iban/IbanCheckerTest.java.
 
 Requirements:
-- Add the springdoc-openapi-starter-webmvc-ui dependency to pom.xml (use the latest stable version compatible with Spring Boot 4.x)
-- Annotate WeatherController and the GET /weather endpoint with appropriate @Operation and @ApiResponse annotations describing:
-    - Summary: "Get current weather"
-    - Description: "Returns hardcoded weather data for Berlin"
-    - Response 200: returns a WeatherResponse JSON object
-- Do not change the existing endpoint logic
+- Test valid German IBANs (e.g. "DE89370400440532013000", "DE89 3704 0044 0532 0130 00", lowercase "de89...") -> assert true
+- Test invalid country prefixes (e.g. "FR1420041010050500013M02606", "GB82WEST12345698765432") -> assert false
+- Test invalid lengths (too short like "DE12345", too long like "DE89370400440532013000999") -> assert false
+- Test null and blank strings -> assert false
+- Test main(String[] args) output streams for "PASS" and "FAIL"
 
-After making the changes, explain:
-1. How to start the application
-2. The exact URL to open the Swagger UI in a browser
-3. How to execute the GET /weather call directly from the Swagger UI
+After creating the file, explain how to run the test suite via Maven.
 ```
 
-**Expected output:** Updated `pom.xml`, annotated `WeatherController.java`, and a clear written explanation of the Swagger UI URL (`http://localhost:8080/swagger-ui.html`) and how to use it.
+**Expected output:** `IbanCheckerTest.java` and terminal test run commands (`mvn test`).
 
 ---
 
-### Prompt 3 — Generate Tests and Explain How to Run Them
+### Prompt 3 — Package as Standalone Executable JAR
 
 **Mode:** Agent
-**What it produces:** Both a unit test for the controller layer and a Spring Boot integration test for the live endpoint, plus instructions for running them.
+**What it produces:** Maven shade plugin configuration for direct CLI execution.
 
 ```
-Write tests for the Spring Boot Weather API. Create two test files:
+Configure Maven in pom.xml to build a standalone runnable JAR for the IBAN Checker CLI.
 
-1. WeatherControllerUnitTest.java
-   - Use @WebMvcTest(WeatherController.class)
-   - Mock the full Spring MVC layer with MockMvc
-   - Test that GET /weather returns HTTP 200
-   - Test that the response body contains "city": "Berlin" and "temperature": 20
-   - Use JUnit 5 and AssertJ or Hamcrest matchers
+Requirements:
+- Use maven-shade-plugin or maven-jar-plugin
+- Set mainClass to com.example.iban.IbanChecker
+- Ensure the user can run: java -jar target/iban-checker.jar "DE89370400440532013000"
 
-2. WeatherControllerIntegrationTest.java
-   - Use @SpringBootTest with webEnvironment = RANDOM_PORT
-   - Use TestRestTemplate to call GET /weather against the running server
-   - Assert HTTP 200 status
-   - Assert response body fields city and temperature match expected values
-
-After creating the files, explain:
-1. How to run only the unit test from the terminal (Maven command)
-2. How to run only the integration test from the terminal (Maven command)
-3. How to run all tests at once
-4. What the difference is between the two test approaches and when to use each
+Explain the exact terminal commands to package and execute the JAR.
 ```
 
-**Expected output:** `WeatherControllerUnitTest.java`, `WeatherControllerIntegrationTest.java`, and a written explanation of the Maven commands and the distinction between the two testing strategies.
+**Expected output:** Updated `pom.xml` with shade plugin and copy-paste run commands.
 
 ---
 
-### How to call the tests — quick reference
-
-After Bob generates the test files, use these terminal commands:
+### How to execute the CLI — quick reference
 
 | Action | Command |
 |--------|---------|
 | Run all tests | `mvn test` |
-| Run unit test only | `mvn test -Dtest=WeatherControllerUnitTest` |
-| Run integration test only | `mvn test -Dtest=WeatherControllerIntegrationTest` |
-| Run with verbose output | `mvn test -Dtest=WeatherControllerUnitTest -pl . --no-transfer-progress` |
+| Compile class directly | `javac -d target/classes src/main/java/com/example/iban/IbanChecker.java` |
+| Test valid IBAN (CLI) | `java -cp target/classes com.example.iban.IbanChecker "DE89370400440532013000"` (prints `PASS`) |
+| Test invalid IBAN (CLI) | `java -cp target/classes com.example.iban.IbanChecker "FR14..."` (prints `FAIL`) |
+| Build executable JAR | `mvn clean package` |
+| Run executable JAR | `java -jar target/iban-checker.jar "DE89370400440532013000"` |
 
-> 💡 **Prompt engineering note:** The three prompts above follow the same pattern that makes one-shot prompts reliable with Bob:
-> - **Explicit file names** — Bob knows exactly what to create
-> - **Explicit constraints** — "do not add X" prevents Bob from gold-plating
-> - **Explicit output request** — asking for an explanation in the same prompt keeps the result self-contained
-> - **No ambiguity in the data** — hardcoded values (`"city": "Berlin"`, `temperature: 20`) leave nothing to interpret
+> 💡 **Prompt engineering note:** The prompts above follow the pure Java CLI paradigm:
+> - **Zero bloat** — no Spring Boot or Web server overhead
+> - **Instant execution** — starts in milliseconds
+> - **Explicit contracts** — simple "PASS" / "FAIL" stdout contract
 
 ---
 
@@ -1375,7 +1295,7 @@ Do not suggest any code changes.
 | Tip | Why it matters |
 |-----|---------------|
 | **Start with Plan mode** for new features | Prevents wasted implementation on wrong architecture |
-| **Be specific in prompts** | "Create a `GET /weather` returning a `WeatherResponse` DTO" >> "make a weather API" |
+| **Be specific in prompts** | "Create an `IbanChecker` class with `validate(String)` returning boolean" >> "make an IBAN validator" |
 | **Use `@mentions`** instead of copy-pasting | Keeps context precise and token-efficient |
 | **Run `/init` after major project changes** | Stale `AGENTS.md` = stale suggestions |
 | **Keep Edit & Execute on manual approval** | Full oversight, especially on sensitive projects |
