@@ -256,7 +256,8 @@ mkdir -p .bob/rules .bob/rules-agent .bob/rules-ask
 ## Pure Java & CLI Rules
 - Pure standard Java only (no Spring Boot, no external framework dependencies)
 - German IBAN validation rule: starts with "DE" and exact length is 22 characters (whitespace stripped during formatting improvements)
-- CLI response: print "PASS" on stdout for valid IBANs, "FAIL" for invalid/missing input
+- CLI output contract: print "PASS" or "FAIL" on stdout (never System.exit(1) or usage error on stderr)
+- Provide a Makefile with `make build`, `make test`, and `make run IBAN="..."`
 - Keep functions small, static, and testable without side effects
 - All public methods must have Javadoc
 ```
@@ -1007,7 +1008,8 @@ Requirements:
   2. Total length must be exactly 22 characters (e.g. "DE89370400440532013000")
 - Output:
   - Prints "PASS" to stdout if valid
-  - Prints "FAIL" to stdout if invalid or missing arguments
+  - Prints "FAIL" to stdout if invalid or missing arguments (never System.exit(1) or stderr usage message)
+- Makefile with targets: build, test, run (e.g. `make run IBAN="DE..."`)
 - Single class: IbanChecker.java in package com.example.iban
 
 Create a plan for this project as a checklist in a plan.md file.
@@ -1038,6 +1040,7 @@ Implement the plan from plan.md. Generate a lightweight pure Java Maven project:
   - Invalid length ("DE123456") -> FAIL
   - Null / empty string / missing CLI argument -> FAIL
 - pom.xml with only junit-jupiter dependency (no Spring, no extra dependencies)
+- Makefile with targets: build, test, run (`make run IBAN="$(IBAN)"`), clean
 
 Do not run anything yet.
 ```
@@ -1056,16 +1059,17 @@ Do not run anything yet.
 
 **Prompt:**
 ```
-Compile and run the IBAN Checker CLI with sample IBANs.
+Run the test cases using make run.
 ```
 
 **Narrate:**
 - Bob proposes an **Execute** action — show the exact command before approving
 - Show live execution in terminal:
-  - `java -cp target/classes com.example.iban.IbanChecker "DE89370400440532013000"` → `PASS`
-  - `java -cp target/classes com.example.iban.IbanChecker "FR1420041010050500013M02606"` → `FAIL`
-  - `java -cp target/classes com.example.iban.IbanChecker "DE123"` → `FAIL`
-  - Show that `"DE89 3704 0044 0532 0130 00"` (with spaces) outputs `FAIL` initially — setting up the next demo step!
+  - `make run IBAN="DE89370400440532013000"` → `PASS`
+  - `make run IBAN="FR1420041010050500013M02606"` → `FAIL`
+  - `make run IBAN="DE123"` → `FAIL`
+  - `make run` (missing argument) → `FAIL`
+  - Show that `make run IBAN="DE89 3704 0044 0532 0130 00"` (with spaces) outputs `FAIL` initially — setting up the next demo step!
 
 ---
 
@@ -1082,7 +1086,7 @@ Compile and run the IBAN Checker CLI with sample IBANs.
 // Strip all whitespace/spaces from the input IBAN before checking prefix and length
 ```
 4. Press `Cmd+Enter` → show the inline diff → accept it
-5. Run `java -cp target/classes com.example.iban.IbanChecker "DE89 3704 0044 0532 0130 00"` → verify it now prints `PASS`!
+5. Run `make run IBAN="DE89 3704 0044 0532 0130 00"` → verify it now prints `PASS`!
 
 **Narrate:**
 - *"No chat. My instruction directly in the file."*
@@ -1246,12 +1250,12 @@ Explain the exact terminal commands to package and execute the JAR.
 
 | Action | Command |
 |--------|---------|
-| Run all tests | `mvn test` |
-| Compile class directly | `javac -d target/classes src/main/java/com/example/iban/IbanChecker.java` |
-| Test valid IBAN (CLI) | `java -cp target/classes com.example.iban.IbanChecker "DE89370400440532013000"` (prints `PASS`) |
-| Test invalid IBAN (CLI) | `java -cp target/classes com.example.iban.IbanChecker "FR14..."` (prints `FAIL`) |
-| Build executable JAR | `mvn clean package` |
-| Run executable JAR | `java -jar target/iban-checker.jar "DE89370400440532013000"` |
+| Run all tests | `make test` (or `mvn test`) |
+| Compile project | `make build` |
+| Test valid IBAN | `make run IBAN="DE89370400440532013000"` (prints `PASS`) |
+| Test invalid IBAN | `make run IBAN="FR1420041010050500013M02606"` (prints `FAIL`) |
+| Test with spaces | `make run IBAN="DE89 3704 0044 0532 0130 00"` |
+| Test missing argument | `make run` (prints `FAIL`) |
 
 > 💡 **Prompt engineering note:** The prompts above follow the pure Java CLI paradigm:
 > - **Zero bloat** — no Spring Boot or Web server overhead

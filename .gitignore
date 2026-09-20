@@ -1,2 +1,6 @@
 *.vtt
-demo_practice/
+demo_practice/agent_demo/target/
+demo_practice/agent_demo/*
+!demo_practice/agent_demo/.bob/
+!demo_practice/agent_demo/.bob/**
+demo_practice/ask_demo/retail-banking/target/

@@ -28,15 +28,5 @@
 
 - Pure standard Java 21 only (zero external framework dependencies, no Spring).
 - Keep core validation methods `public static boolean validate(String iban)` pure and deterministic (no side effects, thread-safe).
-- CLI output contract:
-  - ALWAYS print `PASS` or `FAIL` directly to `stdout`.
-  - NEVER call `System.exit(1)` or print "Usage: ..." to `System.err` for missing or empty arguments — empty/null/missing input is simply invalid and must output `FAIL` to `stdout` with exit code 0.
-- CLI argument handling: In `main(String[] args)`, if `args` is empty/null, print `FAIL`. Otherwise, reassemble all tokens via `String.join(" ", args)` before validating: `validate(String.join(" ", args))`. This guarantees spaced inputs (e.g. `make run IBAN="..."` or `mvn exec:java`) are handled robustly.
-
-## Makefile Standards
-- Provide a `Makefile` with standard targets: `build`, `test`, `run`, `clean`, `help`.
-- The `make run` target must accept `IBAN` variable:
-  ```makefile
-  run:
-  	@mvn -q exec:java -Dexec.mainClass=com.example.iban.IbanChecker -Dexec.args="$(IBAN)"
-  ```
+- Fail fast on input validation with clear defensive checks.
+- CLI output contract: print `PASS` or `FAIL` directly to `stdout`.

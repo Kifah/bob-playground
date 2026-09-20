@@ -19,7 +19,8 @@ Requirements:
   2. Total length must be exactly 22 characters (e.g. "DE89370400440532013000")
 - Output:
   - Prints "PASS" to stdout if valid
-  - Prints "FAIL" to stdout if invalid or missing arguments
+  - Prints "FAIL" to stdout if invalid or missing arguments (never System.exit(1) or stderr usage message)
+- Makefile with targets: build, test, run (e.g. `make run IBAN="DE..."`)
 - Single class: IbanChecker.java in package com.example.iban
 
 Create a plan for this project as a checklist in a plan.md file.
@@ -44,6 +45,11 @@ Implement the plan from plan.md. Generate a lightweight pure Java Maven project:
   - Invalid length ("DE123456") -> FAIL
   - Null / empty string / missing CLI argument -> FAIL
 - pom.xml with only junit-jupiter dependency (no Spring, no extra dependencies)
+- Makefile with targets:
+  - `build`: compile the project (`mvn compile`)
+  - `test`: run unit tests (`mvn test`)
+  - `run`: execute CLI (`mvn -q exec:java -Dexec.mainClass=com.example.iban.IbanChecker -Dexec.args="$(IBAN)"`)
+  - `clean`: clean artefacts (`mvn clean`)
 
 Do not run the application yet.
 ```
@@ -52,30 +58,25 @@ Do not run the application yet.
 
 ## 3. Terminal Execution & Initial Testing
 
-**Mode:** `Agent`  
-**Goal:** Compile and run directly via CLI with sample IBANs.
+**Mode:** `Agent`
+**Goal:** Run directly via Makefile targets with sample IBANs.
 
-**Compile:**
-```sh
-javac -d target/classes src/main/java/com/example/iban/IbanChecker.java
-```
-
-**Run test cases:**
+**Test cases via Makefile:**
 ```sh
 # 1. Valid German IBAN -> PASS
-java -cp target/classes com.example.iban.IbanChecker "DE89370400440532013000"
+make run IBAN="DE89370400440532013000"
 
 # 2. Invalid prefix (French IBAN) -> FAIL
-java -cp target/classes com.example.iban.IbanChecker "FR1420041010050500013M02606"
+make run IBAN="FR1420041010050500013M02606"
 
 # 3. Invalid length (too short) -> FAIL
-java -cp target/classes com.example.iban.IbanChecker "DE123456"
+make run IBAN="DE123456"
 
 # 4. IBAN with spaces (fails initially before refactoring) -> FAIL
-java -cp target/classes com.example.iban.IbanChecker "DE89 3704 0044 0532 0130 00"
+make run IBAN="DE89 3704 0044 0532 0130 00"
 
 # 5. Missing argument -> FAIL
-java -cp target/classes com.example.iban.IbanChecker
+make run
 ```
 
 ---
@@ -106,7 +107,7 @@ Enhance IbanChecker.java so that IBANs formatted with spaces (e.g. "DE89 3704 00
 **Re-test in Terminal:**
 ```sh
 # Now passes with spaces:
-java -cp target/classes com.example.iban.IbanChecker "DE89 3704 0044 0532 0130 00"
+make run IBAN="DE89 3704 0044 0532 0130 00"
 # Output: PASS
 ```
 
