@@ -1001,8 +1001,8 @@ Store the following in the knowledge graph:
 I want to build a pure Java CLI application (single class with main method, no external frameworks, no Spring Boot) that validates German IBAN numbers passed as a command-line argument.
 
 Requirements:
-- Input: IBAN string passed as CLI argument (args[0])
-- Initial validation rules:
+- Input: In main(String[] args), join all arguments with String.join(" ", args) if args is non-empty, so spaced inputs are handled cleanly
+- Initial validation rules in validate(String iban):
   1. Must start with "DE"
   2. Total length must be exactly 22 characters (e.g. "DE89370400440532013000")
 - Output:
@@ -1031,7 +1031,7 @@ Implement the plan from plan.md. Generate a lightweight pure Java Maven project:
 - Java 21
 - Main class: src/main/java/com/example/iban/IbanChecker.java with:
   - public static boolean validate(String iban) -> checks startsWith("DE") and length() == 22
-  - public static void main(String[] args) -> prints "PASS" or "FAIL"
+  - public static void main(String[] args) -> if args is empty/null, prints "FAIL"; otherwise calls validate(String.join(" ", args)) and prints "PASS" or "FAIL"
 - Test class: src/test/java/com/example/iban/IbanCheckerTest.java with JUnit 5 covering:
   - Valid DE IBAN without spaces ("DE89370400440532013000") -> PASS
   - Invalid prefix (e.g. "FR1420041010050500013M02606") -> FAIL
@@ -1188,8 +1188,8 @@ Requirements:
   - Return true if it starts with "DE" and has exact length of 22 characters (e.g. "DE89370400440532013000")
   - Return false for any null, empty, wrong prefix, or wrong length input
 - Method: public static void main(String[] args)
-  - If args is empty or args[0] is invalid -> System.out.println("FAIL")
-  - If args[0] is valid -> System.out.println("PASS")
+  - If args is empty or null -> System.out.println("FAIL")
+  - Otherwise, call validate(String.join(" ", args)) and print "PASS" (if true) or "FAIL" (if false)
 - pom.xml: include only junit-jupiter for unit testing
 
 Do not add extra dependencies.

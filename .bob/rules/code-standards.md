@@ -29,4 +29,5 @@
 - Pure standard Java 21 only (zero external framework dependencies, no Spring).
 - Keep core validation methods `public static boolean validate(String iban)` pure and deterministic (no side effects, thread-safe).
 - Fail fast on input validation with clear defensive checks.
+- CLI argument handling: In `main(String[] args)`, if `args` has length > 0, reassemble all tokens via `String.join(" ", args)` before validating — this ensures inputs containing spaces are handled robustly regardless of how the shell, Makefile, or Maven exec plugin splits arguments.
 - CLI output contract: print `PASS` or `FAIL` directly to `stdout`.

@@ -13,8 +13,8 @@ These ready-to-use prompts guide you through the live demonstration of IBM Bob 2
 I want to build a pure Java CLI application (single class with main method, no external frameworks, no Spring Boot) that validates German IBAN numbers passed as a command-line argument.
 
 Requirements:
-- Input: IBAN string passed as CLI argument (args[0])
-- Initial validation rules:
+- Input: In main(String[] args), join all arguments with String.join(" ", args) if args is non-empty, so spaced inputs are handled cleanly
+- Initial validation rules in validate(String iban):
   1. Must start with "DE"
   2. Total length must be exactly 22 characters (e.g. "DE89370400440532013000")
 - Output:
@@ -37,7 +37,7 @@ Implement the plan from plan.md. Generate a lightweight pure Java Maven project:
 - Java 21
 - Main class: src/main/java/com/example/iban/IbanChecker.java with:
   - public static boolean validate(String iban) -> checks startsWith("DE") and length() == 22
-  - public static void main(String[] args) -> prints "PASS" or "FAIL"
+  - public static void main(String[] args) -> if args is empty/null, prints "FAIL"; otherwise calls validate(String.join(" ", args)) and prints "PASS" or "FAIL"
 - Test class: src/test/java/com/example/iban/IbanCheckerTest.java with JUnit 5 covering:
   - Valid DE IBAN without spaces ("DE89370400440532013000") -> PASS
   - Invalid prefix (e.g. "FR1420041010050500013M02606") -> FAIL
@@ -82,22 +82,24 @@ java -cp target/classes com.example.iban.IbanChecker
 
 ## 4. Live Demonstration Improvement — Support Formatted IBANs (with Spaces)
 
-**Feature:** Literate Coding (`Cmd+I` / `Ctrl+I`) or Agent Mode  
-**Goal:** Enhance the validator to strip whitespace, allowing formatted IBANs like `"DE89 3704 0044 0532 0130 00"`.
+**Feature:** Literate Coding (`Cmd+I` / `Ctrl+I`) or Agent Mode
+**Goal:** Enhance the `validate` method to strip whitespace, allowing formatted IBANs like `"DE89 3704 0044 0532 0130 00"`.
+
+*(Note: Because `main` uses `String.join(" ", args)`, the CLI automatically reassembles any multi-token inputs from shell/Maven exec, allowing `validate(cleaned)` to process the full string cleanly.)*
 
 ### Option A: Literate Coding (Inline in Editor)
 1. Open `IbanChecker.java` in the editor.
 2. Press `Cmd+I` (Mac) / `Ctrl+I` (Win/Linux) above `validate(String iban)`.
 3. Type:
 ```
-// Strip all spaces/whitespace from the input IBAN before checking prefix and length
+// Strip all spaces/whitespace from the input IBAN (replaceAll("\\s", "")) before checking prefix and length
 ```
 4. Press `Cmd+Enter` → Accept diff.
 
 ### Option B: Agent Mode Prompt
 ```
 Enhance IbanChecker.java so that IBANs formatted with spaces (e.g. "DE89 3704 0044 0532 0130 00") are also accepted:
-- Strip all whitespace from the input string before checking that it starts with "DE" and has 22 characters
+- Strip all whitespace (replaceAll("\\s", "")) from the input string in validate() before checking that it starts with "DE" and has 22 characters
 - Update IbanCheckerTest.java to include test cases with spaces
 ```
 
