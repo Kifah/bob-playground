@@ -1156,7 +1156,7 @@ Change the valid output message from PASS to OK_VALIDATED
 **⏱ Expected Bob processing time:** < 10 sec
 
 **Steps:**
-1. Show (or create live) `.bob/commands/review.md`:
+1. Show (or create live) `.bob/commands/check-code.md`:
 ```markdown
 Review the current open file for:
 - Edge case handling (nulls, empty strings, Unicode whitespace)
@@ -1164,7 +1164,7 @@ Review the current open file for:
 - Clean single-responsibility method design
 Provide specific, actionable feedback with code examples.
 ```
-2. Type `/review` in chat — show the autocomplete — run it against `IbanChecker.java`
+2. Type `/check-code` in chat — show the autocomplete — run it against `IbanChecker.java`
 
 **Narrate:**
 - *"One command. Standardised. Checked into version control. Available to every team member."*
