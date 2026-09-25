@@ -37,7 +37,8 @@ Requirements:
 - Input: In main(String[] args), join all arguments with String.join(" ", args) if args is non-empty, so spaced inputs are handled cleanly
 - Initial validation rules in validate(String iban):
   1. Must start with "DE"
-  2. Total length must be exactly 22 characters (e.g. "DE89370400440532013000")
+  2. Total length must be exactly 22 characters without spaces (e.g. "DE89370400440532013000")
+  3. Formatted IBANs containing whitespace between numbers/characters must NOT be allowed in this initial version (must return false / FAIL)
 - Output:
   - Prints "PASS" to stdout if valid
   - Prints "FAIL" to stdout if invalid or missing arguments (never System.exit(1) or stderr usage message)
@@ -95,7 +96,7 @@ make test
 **Target:** [`ibm-bob-presentation.md:1085`](ibm-bob-presentation.md:1085)
 
 ```
-// Strip all whitespace/spaces from the input IBAN before checking prefix and length
+// Strip all whitespace/spaces from the input IBAN before checking prefix and length. Also update or add unit tests in IbanCheckerTest if needed to verify formatted IBANs with spaces.
 ```
 
 **Verification commands after accepting the diff:**
@@ -183,7 +184,8 @@ Requirements:
 - Pure standard Java (no Spring Boot, no external framework dependencies)
 - Main class: src/main/java/com/example/iban/IbanChecker.java
 - Method: public static boolean validate(String iban)
-  - Return true if it starts with "DE" and has exact length of 22 characters (e.g. "DE89370400440532013000")
+  - Return true if it starts with "DE" and has exact length of 22 characters without spaces (e.g. "DE89370400440532013000")
+  - Whitespace between characters/digits is NOT allowed in this initial version (return false)
   - Return false for any null, empty, wrong prefix, or wrong length input
 - Method: public static void main(String[] args)
   - If args is empty or null -> System.out.println("FAIL")
