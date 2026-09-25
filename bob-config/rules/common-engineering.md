@@ -81,3 +81,8 @@ Bob must follow them in all conversations unless a project-specific rule explici
 - Do not commit commented-out code. Use version control to retrieve old code.
 - Do not commit hardcoded credentials, API keys, or secrets of any kind.
 - When in doubt between two approaches, prefer the one that is easier to test and easier to change later.
+
+## Shell & CLI Environment
+
+- The default user shell environment on macOS is `zsh` (`/bin/zsh`).
+- When generating or running shell scripts, use standard POSIX `#!/bin/sh` or `/bin/zsh` syntax. Do not assume `bash` or execute scripts with `bash` if `sh`/`zsh` is standard.
