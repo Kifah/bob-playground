@@ -1,16 +1,14 @@
 # AGENTS.md — Agent Mode Rules (Demo Workspace)
 
-This configuration guides IBM Bob in **Agent Mode** during codebase analysis, testing, or maintenance tasks.
+This file provides guidance to agents when working with code in this repository.
 
----
+## Coding Rules
 
-## 🎯 Purpose & Scope
-This workspace is configured for inspecting and evaluating enterprise Java applications.
-
----
-
-## 📐 Coding & Architecture Standards
-- **Spring Boot & Java Standards**: Follow clean layered architecture (Controller → Service → Repository/DAO → Database).
-- **Uncle Bob's Clean Code**: Single responsibility per service method, descriptive naming, and Boy Scout rule.
-- **Testing**: Follow JUnit Arrange-Act-Assert (AAA) pattern.
-- **Safety First**: Verify all changes against test suites before committing.
+- All Maven commands must be run from `retail-banking/`, not the workspace root.
+- Use `@Disabled` unit tests as a template when writing new service tests — un-disable by removing the annotation, not by modifying the class structure.
+- New DB schema changes go in a new numbered YAML file in `src/main/resources/db/changelog/changes/`; never edit existing changesets (Liquibase is forward-only).
+- Field injection (`@Autowired`) is the established pattern for all service implementations. Use constructor injection only in configuration classes.
+- Monetary amounts travel as `double` between controller and service; convert to `BigDecimal` at the point of DB persistence/arithmetic inside `serviceImpl`.
+- `UserSecurityServiceImpl` is wired directly into `SecurityConfig` by concrete type — do not replace it with the `UserService` interface or the security chain will break.
+- `@PreAuthorize` on methods is the only access control on admin endpoints — `PUBLIC_MATCHERS` intentionally allows unauthenticated access to `/admin/**` at the URL level.
+- Run `./mvnw test -Dtest=ClassName#methodName` to run a single test method.

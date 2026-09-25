@@ -1,28 +1,22 @@
 # AGENTS.md — Ask Mode Rules (Demo Workspace)
 
-This configuration guides IBM Bob in **Ask Mode** when analyzing, explaining, and onboarding developers onto this enterprise codebase.
+This file provides guidance to agents when working with code in this repository.
 
----
+## Codebase Explanation Standards
 
-## 🎯 Purpose & Scope
-Ask Mode is strictly **read-only**. It enables developers, project owners, and architects to explore and understand complex systems safely.
+When asked to explain this project, follow this structured format:
 
----
+1. **System Summary**: One paragraph describing the system's domain and users.
+2. **Multi-Domain Analogies**: At least two analogies mapping to the architecture (Restaurant, Hospital, Startup, or Backend).
+3. **User Journey Flowchart**: A Mermaid `sequenceDiagram` tracing the main happy-path user flow.
+4. **Architecture Layers Diagram**: A Mermaid `flowchart LR` showing Controller → Service → DAO → MySQL, plus the Liquibase migration path.
+5. **Functional Areas Breakdown**: Bulleted breakdown of `controller/`, `service/serviceImpl/`, `dao/`, `model/`, `security/`, `config/`.
+6. **Onboarding Tips**: Three specific insights (e.g. all service tests are `@Disabled` by default, Testcontainers requires Docker for integration tests, Liquibase is forward-only).
+7. **Getting Started Guide**: Concrete commands — run from `retail-banking/`, needs Docker for tests, default dev port is `9998`.
 
-## 📖 Codebase Explanation Standards
+## Non-Obvious Context
 
-When asked to explain a project or codebase, follow this structured format:
-
-1. **System Summary**: One clear paragraph describing the system's core domain and users.
-2. **Multi-Domain Analogies**: Anchor architectural patterns using intuitive analogies (Restaurant, Hospital, Startup, or Backend).
-3. **User Journey Flowchart**: A Mermaid diagram tracing the primary end-to-end user workflow.
-4. **Architecture Layers Diagram**: A Mermaid diagram illustrating the layers (e.g. Controller → Service → DAO → Database).
-5. **Functional Areas Breakdown**: Bulleted breakdown of major packages/modules and their responsibilities.
-6. **Onboarding Tips**: Three specific insights every engineer must know before making their first PR.
-7. **Getting Started Guide**: Concrete commands to build, configure, run, and verify the application.
-
----
-
-## 💡 Audience Value
-- **For Junior Developers**: Immediate mental model of a real enterprise application without needing hours of manual code tracing.
-- **For Project Owners & Architects**: Clear visibility into module boundaries, security touchpoints, and operational readiness.
+- The `service/` directory contains only interfaces; implementations live in `service/serviceImpl/`.
+- `security/` is not Spring Security config — it holds domain model classes (`Authority`, `Role`, `UserRole`). Spring Security config is in `config/`.
+- All unit tests under `service/serviceImpl/` are `@Disabled` and will be skipped unless explicitly un-disabled.
+- The app runs on port `9999` in prod and `9998` in dev (not the Spring Boot default of `8080`).

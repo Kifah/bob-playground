@@ -73,21 +73,54 @@ Do not run anything yet.
 ---
 
 ### Part 3 — Execute: Run CLI Tests
-**Mode:** Agent  
+**Mode:** Agent
 **Target:** [`ibm-bob-presentation.md:1061`](ibm-bob-presentation.md:1061)
 
 ```
 Run the test cases using make run.
 ```
 
+**Verification commands (in terminal / workspace directory):**
+```bash
+# Valid German IBAN -> prints PASS
+make run IBAN="DE89370400440532013000"
+
+# Invalid prefix -> prints FAIL
+make run IBAN="FR1420041010050500013M02606"
+
+# Invalid length -> prints FAIL
+make run IBAN="DE123"
+
+# Missing argument -> prints FAIL
+make run
+
+# Spaced IBAN before Literate Coding -> prints FAIL (sets up Part 4)
+make run IBAN="DE89 3704 0044 0532 0130 00"
+
+# Run all unit tests
+make test
+```
+
 ---
 
 ### Part 4 — Literate Coding: Support Spaces
-**Tool:** Inline Editor (`Cmd+I` / `Ctrl+I` in `IbanChecker.java`)  
+**Tool:** Inline Editor (`Cmd+I` / `Ctrl+I` in `IbanChecker.java`)
 **Target:** [`ibm-bob-presentation.md:1085`](ibm-bob-presentation.md:1085)
 
 ```
 // Strip all whitespace/spaces from the input IBAN before checking prefix and length
+```
+
+**Verification commands after accepting the diff:**
+```bash
+# Rebuild first to compile the updated source
+make build
+
+# Spaced German IBAN -> now prints PASS!
+make run IBAN="DE89 3704 0044 0532 0130 00"
+
+# Re-run unit tests
+make test
 ```
 
 ---
@@ -114,13 +147,24 @@ Explain how the validate method handles null and whitespace sanitisation, and wh
 ---
 
 ### Part 7 — Rollback: Safe Experimentation
-**Mode:** Agent  
+**Mode:** Agent
 **Target:** [`ibm-bob-presentation.md:1140`](ibm-bob-presentation.md:1140)
 
 ```
 Change the valid output message from PASS to OK_VALIDATED
 ```
 *(After approving, demonstrate Rollback via the chat UI hover menu).*
+
+**Verification commands:**
+```bash
+# Verify the changed output message before rollback:
+make run IBAN="DE89370400440532013000"
+# Expected output: OK_VALIDATED
+
+# After clicking Rollback in chat UI, verify restoration to PASS:
+make run IBAN="DE89370400440532013000"
+# Expected output: PASS
+```
 
 ---
 
@@ -166,7 +210,7 @@ Do not run the application yet.
 ---
 
 ### Playbook Prompt 2: Comprehensive JUnit 5 Tests
-**Mode:** Agent  
+**Mode:** Agent
 **Target:** [`ibm-bob-presentation.md:1212`](ibm-bob-presentation.md:1212)
 
 ```
@@ -182,10 +226,15 @@ Requirements:
 After creating the file, explain how to run the test suite via Maven.
 ```
 
+**Verification:**
+```bash
+make test
+```
+
 ---
 
 ### Playbook Prompt 3: Runnable Fat JAR Configuration
-**Mode:** Agent  
+**Mode:** Agent
 **Target:** [`ibm-bob-presentation.md:1234`](ibm-bob-presentation.md:1234)
 
 ```
@@ -197,6 +246,12 @@ Requirements:
 - Ensure the user can run: java -jar target/iban-checker.jar "DE89370400440532013000"
 
 Explain the exact terminal commands to package and execute the JAR.
+```
+
+**Verification:**
+```bash
+make build
+java -jar target/iban-checker.jar "DE89370400440532013000"
 ```
 
 ---
