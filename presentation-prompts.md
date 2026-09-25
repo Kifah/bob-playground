@@ -41,7 +41,7 @@ Requirements:
   3. Formatted IBANs containing whitespace between numbers/characters must NOT be allowed in this initial version (must return false / FAIL)
 - Output:
   - Prints "PASS" to stdout if valid
-  - Prints "FAIL" to stdout if invalid or missing arguments (never System.exit(1) or stderr usage message)
+  - Prints "FAIL" to stdout if invalid, and prints "FAIL" if no IBAN / arguments are provided (never System.exit(1) or stderr usage message)
 - Makefile with targets: build, test, run (e.g. `make run IBAN="DE..."`)
 - Single class: IbanChecker.java in package com.example.iban
 
@@ -188,7 +188,7 @@ Requirements:
   - Whitespace between characters/digits is NOT allowed in this initial version (return false)
   - Return false for any null, empty, wrong prefix, or wrong length input
 - Method: public static void main(String[] args)
-  - If args is empty or null -> System.out.println("FAIL")
+  - If args is empty, null, or no IBAN is provided -> System.out.println("FAIL")
   - Otherwise, call validate(String.join(" ", args)) and print "PASS" (if true) or "FAIL" (if false)
 - pom.xml: include only junit-jupiter for unit testing
 
