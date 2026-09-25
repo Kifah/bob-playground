@@ -380,22 +380,29 @@ Bob receives this as context at session start — it knows the branch and whethe
 
 ---
 
-**2. `PreToolUse` — block writes outside `src/` to protect the project structure**
+**2. `PreToolUse` — block writes outside allowed paths to protect the project structure**
 
-Prevents Bob from accidentally writing files to the project root or unintended directories:
+Prevents Bob from writing files to root directories or modifying disallowed areas. This real-world example is active in [`demo_practice/ask_demo/.bob/hooks/guard-writes.sh`](demo_practice/ask_demo/.bob/hooks/guard-writes.sh) and matches all file-writing tools (`write_file`, `apply_diff`, `search_and_replace`, `insert_content`) using pure POSIX `sh`:
 
-`.bob/hooks/guard-src.sh`:
+`.bob/hooks/guard-writes.sh`:
 ```bash
 #!/bin/sh
-PATH_VAL=$(cat | python3 -c "import sys,json; print(json.load(sys.stdin)['input'].get('path',''))")
+# PreToolUse hook — blocks write_file / apply_diff / search_and_replace / insert_content
+# calls targeting paths outside the allowed zones in this project.
+
+INPUT=$(cat)
+PATH_VAL=$(printf '%s' "$INPUT" | grep -o '"path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"path"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/')
+
+if [ -z "$PATH_VAL" ]; then
+  exit 0
+fi
+
 case "$PATH_VAL" in
-  src/*|.bob/*|test/*)
-    exit 0
-    ;;
+  retail-banking/src/*|retail-banking/pom.xml|AGENTS.md|.bob/*)
+    exit 0 ;;
   *)
-    echo "Blocked: writes outside src/, .bob/, or test/ are not permitted" >&2
-    exit 2
-    ;;
+    printf 'Blocked: writes to "%s" are not allowed.\nOnly retail-banking/src/, retail-banking/pom.xml, AGENTS.md, and .bob/ are permitted.\n' "$PATH_VAL" >&2
+    exit 2 ;;
 esac
 ```
 
@@ -405,15 +412,21 @@ esac
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "^write_file$",
-        "hooks": [{ "type": "command", "command": "sh .bob/hooks/guard-src.sh", "timeout": 5 }]
+        "matcher": "^(write_file|apply_diff|search_and_replace|insert_content)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh .bob/hooks/guard-writes.sh",
+            "timeout": 10
+          }
+        ]
       }
     ]
   }
 }
 ```
 
-Bob attempts to write a file → hook reads the `input.path` → if it's outside allowed directories, exit `2` blocks the write and Bob reports the tool as blocked.
+Bob attempts to modify a file → hook inspects the payload `path` → if outside allowed zones, exit code `2` blocks the tool call and Bob outputs the stderr explanation directly in chat.
 
 ---
 
