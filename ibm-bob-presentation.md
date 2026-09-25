@@ -1029,20 +1029,7 @@ Create a plan for this project as a checklist in a plan.md file.
 
 **Switch to Agent mode, then run:**
 ```
-Implement the plan from plan.md. Generate a lightweight pure Java Maven project:
-- Java 21
-- Main class: src/main/java/com/example/iban/IbanChecker.java with:
-  - public static boolean validate(String iban) -> checks startsWith("DE") and length() == 22
-  - public static void main(String[] args) -> if args is empty/null, prints "FAIL"; otherwise calls validate(String.join(" ", args)) and prints "PASS" or "FAIL"
-- Test class: src/test/java/com/example/iban/IbanCheckerTest.java with JUnit 5 covering:
-  - Valid DE IBAN without spaces ("DE89370400440532013000") -> PASS
-  - Invalid prefix (e.g. "FR1420041010050500013M02606") -> FAIL
-  - Invalid length ("DE123456") -> FAIL
-  - Null / empty string / missing CLI argument -> FAIL
-- pom.xml with only junit-jupiter dependency (no Spring, no extra dependencies)
-- Makefile with targets: build, test, run (`make run IBAN="$(IBAN)"`), clean
-
-Do not run anything yet.
+Implement the plan in plan.md. Do not run anything yet.
 ```
 
 **Narrate:**
